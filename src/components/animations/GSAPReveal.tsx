@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface GSAPRevealProps {
@@ -19,8 +20,10 @@ export function GSAPReveal({
   duration = 0.8,
 }: GSAPRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
+    let ctx: any;
     const loadGSAP = async () => {
       const { gsap } = await import("gsap");
       const { ScrollTrigger } = await import("gsap/ScrollTrigger");
@@ -28,7 +31,7 @@ export function GSAPReveal({
 
       if (!ref.current) return;
 
-      const animations = {
+      const fromAnimations = {
         fadeUp: { y: 60, opacity: 0 },
         fadeIn: { opacity: 0 },
         slideLeft: { x: -60, opacity: 0 },
@@ -36,21 +39,39 @@ export function GSAPReveal({
         scale: { scale: 0.8, opacity: 0 },
       };
 
-      gsap.from(ref.current, {
-        ...animations[animation],
-        duration,
-        delay,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: ref.current,
-          start: "top 85%",
-          toggleActions: "play none none none",
-        },
-      });
+      const toAnimations = {
+        fadeUp: { y: 0, opacity: 1 },
+        fadeIn: { opacity: 1 },
+        slideLeft: { x: 0, opacity: 1 },
+        slideRight: { x: 0, opacity: 1 },
+        scale: { scale: 1, opacity: 1 },
+      };
+
+      ctx = gsap.context(() => {
+        gsap.fromTo(
+          ref.current,
+          { ...fromAnimations[animation] },
+          {
+            ...toAnimations[animation],
+            duration,
+            delay,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: ref.current,
+              start: "top 85%",
+              toggleActions: "play none none none",
+            },
+          }
+        );
+      }, ref);
     };
 
     loadGSAP();
-  }, [animation, delay, duration]);
+
+    return () => {
+      if (ctx) ctx.revert();
+    };
+  }, [animation, delay, duration, pathname]);
 
   return (
     <div ref={ref} className={cn(className)}>

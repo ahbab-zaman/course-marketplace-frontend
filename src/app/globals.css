@@ -151,3 +151,29 @@ body {
 .dark .glass {
   background: rgba(21, 29, 27, 0.8);
 }
+
+:root {
+  --component-active-color-default: var(--primary);
+}
+
+.dark {
+  --component-active-color-default: var(--primary);
+}
+
+@keyframes iconBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  20% {
+    transform: translateY(-0.3em);
+  }
+  40% {
+    transform: translateY(0);
+  }
+  60% {
+    transform: translateY(-0.1em);
+  }
+  80% {
+    transform: translateY(0);
+  }
+}
