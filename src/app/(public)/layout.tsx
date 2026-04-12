@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
+import { Navigation } from "@/components/layout/Navigation";
+import { Footer } from "@/components/layout/Footer";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      {/* <Navbar /> */}
+      <Navigation />
       {children}
-      {/* <Footer /> */}
+      <Footer />
     </>
   );
 }

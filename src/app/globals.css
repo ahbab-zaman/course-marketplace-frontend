@@ -1,237 +1,153 @@
 @import "tailwindcss";
 
-/* ============================================
-   Course Marketplace — Design System Tokens
-   ============================================ */
-
 @theme {
-  /* Brand Colors */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-  --color-primary-950: #172554;
-
-  --color-secondary-50: #f5f3ff;
-  --color-secondary-100: #ede9fe;
-  --color-secondary-200: #ddd6fe;
-  --color-secondary-300: #c4b5fd;
-  --color-secondary-400: #a78bfa;
-  --color-secondary-500: #8b5cf6;
-  --color-secondary-600: #7c3aed;
-  --color-secondary-700: #6d28d9;
-  --color-secondary-800: #5b21b6;
-  --color-secondary-900: #4c1d95;
-  --color-secondary-950: #2e1065;
-
-  --color-accent-50: #fdf4ff;
-  --color-accent-100: #fae8ff;
-  --color-accent-200: #f5d0fe;
-  --color-accent-300: #f0abfc;
-  --color-accent-400: #e879f9;
-  --color-accent-500: #d946ef;
-  --color-accent-600: #c026d3;
-  --color-accent-700: #a21caf;
-  --color-accent-800: #86198f;
-  --color-accent-900: #701a75;
-  --color-accent-950: #4a044e;
-
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
-
-  /* Dark surface colors */
-  --color-surface-50: #f8fafc;
-  --color-surface-100: #f1f5f9;
-  --color-surface-200: #e2e8f0;
-  --color-surface-300: #cbd5e1;
-  --color-surface-400: #94a3b8;
-  --color-surface-500: #64748b;
-  --color-surface-600: #475569;
-  --color-surface-700: #334155;
-  --color-surface-800: #1e293b;
-  --color-surface-900: #0f172a;
-  --color-surface-950: #020617;
+  /* Course Marketplace Custom Colors from Design System */
+  --color-inverse-surface: #2a3230;
+  --color-on-secondary-fixed: #2c1607;
+  --color-background: #f2fbf7;
+  --color-tertiary: #001f1c;
+  --color-secondary-container: #ffd4ba;
+  --color-surface: #f2fbf7;
+  --color-secondary: #775843;
+  --color-on-secondary-container: #7a5a45;
+  --color-outline: #81756e;
+  --color-surface-variant: #dbe4e1;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #3d2b1f;
+  --color-on-tertiary-fixed: #00201d;
+  --color-surface-container-highest: #dbe4e1;
+  --color-on-primary-fixed: #28180d;
+  --color-on-error: #ffffff;
+  --color-on-secondary: #ffffff;
+  --color-on-tertiary-container: #00a99c;
+  --color-tertiary-fixed-dim: #4fdbcc;
+  --color-on-tertiary-fixed-variant: #005049;
+  --color-primary-fixed-dim: #dec1af;
+  --color-surface-container-low: #edf6f2;
+  --color-primary: #26170c;
+  --color-secondary-fixed: #ffdcc6;
+  --color-surface-container-lowest: #ffffff;
+  --color-inverse-on-surface: #eaf3ef;
+  --color-on-error-container: #93000a;
+  --color-on-background: #151d1b;
+  --color-tertiary-fixed: #70f8e8;
+  --color-surface-tint: #705a4c;
+  --color-outline-variant: #d2c4bc;
+  --color-on-primary-fixed-variant: #574335;
+  --color-tertiary-container: #003631;
+  --color-secondary-fixed-dim: #e7bea5;
+  --color-error: #ba1a1a;
+  --color-on-primary-container: #ac9181;
+  --color-inverse-primary: #dec1af;
+  --color-surface-dim: #d3dcd8;
+  --color-surface-container-high: #e1eae6;
+  --color-surface-container: #e7f0ec;
+  --color-on-tertiary: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-secondary-fixed-variant: #5d412d;
+  --color-surface-bright: #f2fbf7;
+  --color-on-surface: #151d1b;
+  --color-on-surface-variant: #4f453f;
+  --color-primary-fixed: #fbddca;
 
   /* Typography */
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-heading: "Outfit", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-headline: var(--font-headline), "Plus Jakarta Sans", sans-serif;
+  --font-body: var(--font-sans), "Inter", sans-serif;
+  --font-label: var(--font-sans), "Inter", sans-serif;
 
   /* Border Radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
   --radius-full: 9999px;
-
-  /* Shadows */
-  --shadow-soft: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
-  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.3);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  --shadow-card-hover: 0 14px 28px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.12);
-
-  /* Animation durations */
-  --animate-duration-fast: 150ms;
-  --animate-duration-normal: 300ms;
-  --animate-duration-slow: 500ms;
-
-  /* Container */
-  --container-3xs: 16rem;
-  --container-2xs: 18rem;
-  --container-xs: 20rem;
-  --container-sm: 24rem;
-  --container-md: 28rem;
-  --container-lg: 32rem;
-  --container-xl: 36rem;
-  --container-2xl: 42rem;
-  --container-3xl: 48rem;
-  --container-4xl: 56rem;
-  --container-5xl: 64rem;
-  --container-6xl: 72rem;
-  --container-7xl: 80rem;
+  
+  /* Fallbacks for Shadcn base variables */
+  --color-muted: #e7f0ec;
+  --color-muted-foreground: #4f453f;
+  --color-border: #d2c4bc;
+  --color-input: #d2c4bc;
+  --color-ring: #26170c;
 }
 
-/* ============================================
-   CSS Custom Properties — Light / Dark Mode
-   ============================================ */
-
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --background: #f2fbf7;
+  --foreground: #151d1b;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #151d1b;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #2563eb;
+  --popover-foreground: #151d1b;
+  --primary: #26170c;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444;
+  --secondary: #e7f0ec;
+  --secondary-foreground: #151d1b;
+  --muted: #e7f0ec;
+  --muted-foreground: #4f453f;
+  --accent: #e7f0ec;
+  --accent-foreground: #151d1b;
+  --destructive: #ba1a1a;
   --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #2563eb;
-  --radius: 0.75rem;
+  --border: #d2c4bc;
+  --input: #d2c4bc;
+  --ring: #26170c;
+  --radius: 0.5rem;
 }
 
 .dark {
-  --background: #030712;
-  --foreground: #f8fafc;
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
-  --popover: #0f172a;
-  --popover-foreground: #f8fafc;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --secondary: #1e293b;
-  --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #1e293b;
-  --accent-foreground: #f8fafc;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --border: #1e293b;
-  --input: #1e293b;
-  --ring: #3b82f6;
+  --background: #151d1b; /* Using deep green/dark mode color from nav */
+  --foreground: #f2fbf7;
+  --card: #202b28;
+  --card-foreground: #f2fbf7;
+  --popover: #202b28;
+  --popover-foreground: #f2fbf7;
+  --primary: #fbddca;
+  --primary-foreground: #26170c;
+  --secondary: #2a3230;
+  --secondary-foreground: #f2fbf7;
+  --muted: #2a3230;
+  --muted-foreground: #dbe4e1;
+  --accent: #2a3230;
+  --accent-foreground: #f2fbf7;
+  --destructive: #ffdad6;
+  --destructive-foreground: #93000a;
+  --border: #4f453f;
+  --input: #4f453f;
+  --ring: #fbddca;
 }
-
-/* ============================================
-   Base Styles
-   ============================================ */
 
 * {
   border-color: var(--border);
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+  @apply selection:bg-secondary-container;
 }
 
-/* ============================================
-   Custom Utilities
-   ============================================ */
+/* Material Symbols Rules */
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+  vertical-align: middle;
+}
+
+/* Base Components & Textures */
+.grain-texture {
+  background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAI2uc50Rth_EwV4N0ZFIZJbGZY4SEAI-Lg2aEAihtmlEBZUAfRKjkeGYy1Jf9eRbmTzIQU4fYQ88lGba3Gwv71bI-Y4n-H0rBsgp7xJ2LKzOkjqaGuDVFbcrLSyL4PnglRGff5GtCk9nnaQBrCKjWoxH9zvcpSRX3i3tVlGyD0SQndPsVUGE_FFXjf1Ane4-7fd6c0xPBGEhQQXdTlEcXgs9xEh5v6u2NYLa4zqJ2hj1zLkFusgqtj_BT3Ttc2UEWMc-FKssnL-nQ);
+  opacity: 0.03;
+}
 
 /* Glassmorphism */
 .glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(242, 251, 247, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 .dark .glass {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Gradient Text */
-.gradient-text {
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500), var(--color-accent-500));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Custom scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: var(--muted-foreground);
-  border-radius: var(--radius-full);
-}
-
-/* Skeleton animation */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--muted) 25%,
-    var(--secondary) 50%,
-    var(--muted) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-
-/* Focus visible ring */
-.focus-ring {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-
-.focus-ring:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
+  background: rgba(21, 29, 27, 0.8);
 }

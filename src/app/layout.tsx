@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { Toaster } from "sonner";
@@ -11,9 +11,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const outfit = Outfit({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-heading",
+  variable: "--font-headline",
   display: "swap",
 });
 
@@ -47,8 +47,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body
-        className={`${inter.variable} ${outfit.variable} font-sans antialiased`}
+        className={`${inter.variable} ${plusJakartaSans.variable} font-body antialiased`}
         suppressHydrationWarning
       >
         <ThemeProvider
