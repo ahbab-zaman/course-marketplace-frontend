@@ -3,7 +3,10 @@
 import React, { useState } from "react";
 import { GSAPReveal } from "@/components/animations/GSAPReveal";
 import Link from "next/link";
-
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
 
@@ -60,225 +63,157 @@ export default function AuthPage() {
               <div
                 className={`transition-all duration-500 ease-in-out ${
                   activeTab === "login"
-                    ? "opacity-100 transform translate-x-0"
-                    : "opacity-0 transform -translate-x-12 absolute inset-0 pointer-events-none p-8 md:p-12"
+                    ? "opacity-100 transform translate-x-0 relative"
+                    : "opacity-0 transform -translate-x-12 absolute inset-0 pointer-events-none p-8 md:p-12 hidden"
                 }`}
               >
-                {/* Social Logins */}
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  <button className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl border-[1.5px] border-outline-variant/30 hover:bg-surface-container transition-all group">
-                    <img
-                      alt="Google"
-                      className="w-5 h-5 group-hover:scale-110 transition-transform"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDa6fP1D8s6Etg-gSLpwwUZtIpDrWCPgV9OIuzDjQ4sVmeAAxIIOb2-S1draTIvlOhuB4tJC6_2AqTY3T1SGPRCmT0045QGWGUID0FtCVU6W-lKliQKNJm8j9rNuCX79dQXBySbltApYzyqn5xJKlXJfaT4dW_p7iPcoasTBB8tSor4HAblmYdpl0320ZnE3sZ2qCmOGu2NKMerGr5DBDrpVQF9Z7kYsKUJJ3r5SV0HDgSEwWzq-4l1pabZnSus3Z2Invw_uEyyvE"
-                    />
-                    <span className="text-sm font-medium text-primary">Google</span>
-                  </button>
-                  <button className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl border-[1.5px] border-outline-variant/30 hover:bg-surface-container transition-all group">
-                    <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform text-primary">apple</span>
-                    <span className="text-sm font-medium text-primary">Apple</span>
-                  </button>
-                </div>
-
-                {/* Divider */}
-                <div className="relative flex items-center mb-8">
-                  <div className="flex-grow border-t border-surface-variant/50"></div>
-                  <span className="flex-shrink mx-4 text-[10px] uppercase tracking-[0.2em] text-secondary font-semibold">
-                    Or continue with email
-                  </span>
-                  <div className="flex-grow border-t border-surface-variant/50"></div>
-                </div>
-
-                {/* Form */}
-                <form action="#" className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-                  <div className="space-y-1.5 focus-within:text-primary-container text-outline-variant transition-colors">
-                    <label
-                      className="block text-xs font-semibold text-secondary uppercase tracking-wider ml-1"
-                      htmlFor="login_email"
-                    >
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2">
-                        mail
-                      </span>
-                      <input
-                        className="w-full pl-12 pr-4 py-3.5 bg-surface-container-low border-none rounded-xl text-primary placeholder:text-outline focus:ring-2 focus:ring-primary-container transition-all"
-                        id="login_email"
-                        placeholder="name@university.edu"
-                        type="email"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 focus-within:text-primary-container text-outline-variant transition-colors">
-                    <div className="flex justify-between items-center ml-1">
-                      <label
-                        className="block text-xs font-semibold text-secondary uppercase tracking-wider"
-                        htmlFor="login_password"
-                      >
-                        Password
-                      </label>
-                      <Link
-                        href="/forgot-password"
-                        className="text-[10px] font-bold text-secondary-fixed-dim hover:text-primary transition-colors uppercase tracking-widest"
-                      >
-                        Forgot?
-                      </Link>
-                    </div>
-                    <div className="relative">
-                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2">
-                        lock
-                      </span>
-                      <input
-                        className="w-full pl-12 pr-4 py-3.5 bg-surface-container-low border-none rounded-xl text-primary placeholder:text-outline focus:ring-2 focus:ring-primary-container transition-all"
-                        id="login_password"
-                        placeholder="••••••••"
-                        type="password"
-                      />
-                      <button
-                        className="absolute right-4 top-1/2 -translate-y-1/2 hover:text-primary transition-colors"
-                        type="button"
-                      >
-                        <span className="material-symbols-outlined text-lg opacity-70">visibility</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 py-2 cursor-pointer group">
-                    <input
-                      className="w-4 h-4 rounded border-outline-variant text-primary-container focus:ring-primary-container cursor-pointer"
-                      id="remember"
-                      type="checkbox"
-                    />
-                    <label
-                      className="text-sm text-on-surface-variant font-medium cursor-pointer group-hover:text-primary transition-colors"
-                      htmlFor="remember"
-                    >
-                      Keep me logged in for 30 days
-                    </label>
-                  </div>
-
-                  <button
-                    className="w-full bg-primary-container text-on-primary font-headline font-bold py-4 rounded-xl shadow-lg shadow-primary-container/20 hover:bg-secondary transition-all hover:-translate-y-1 active:scale-[0.98]"
-                    type="submit"
+                <div className="flex flex-col items-center gap-2 mb-6">
+                  <div
+                    className="flex size-11 shrink-0 items-center justify-center rounded-full border border-surface-variant/50"
+                    aria-hidden="true"
                   >
-                    Enter Workspace
-                  </button>
+                    <svg
+                      className="stroke-primary"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 32 32"
+                      aria-hidden="true"
+                    >
+                      <circle cx="16" cy="16" r="12" fill="none" strokeWidth="8" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col space-y-1.5 text-center">
+                    <h2 className="text-xl font-headline font-semibold tracking-tight text-primary">Welcome back</h2>
+                    <p className="text-sm text-secondary">
+                      Enter your credentials to login to your account.
+                    </p>
+                  </div>
+                </div>
+
+                <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email" className="text-secondary font-semibold uppercase tracking-wider text-xs">Email</Label>
+                      <Input id="login-email" placeholder="hi@yourcompany.com" type="email" required className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label htmlFor="login-password" className="text-secondary font-semibold uppercase tracking-wider text-xs">Password</Label>
+                        <Link
+                          href="/forgot-password"
+                          className="text-[10px] font-bold text-secondary-fixed-dim hover:text-primary transition-colors uppercase tracking-widest"
+                        >
+                          Forgot?
+                        </Link>
+                      </div>
+                      <Input
+                        id="login-password"
+                        placeholder="Enter your password"
+                        type="password"
+                        required
+                        className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox id="login-remember" className="border-outline-variant text-primary-container data-[state=checked]:bg-primary-container data-[state=checked]:border-primary-container" />
+                      <Label htmlFor="login-remember" className="font-normal text-on-surface-variant cursor-pointer hover:text-primary transition-colors">
+                        Remember me for 30 days
+                      </Label>
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full bg-primary-container text-on-primary font-headline font-bold py-6 rounded-xl hover:bg-secondary hover:-translate-y-1 active:scale-[0.98] transition-all">
+                    Sign in
+                  </Button>
                 </form>
+
+                <div className="flex items-center gap-3 before:h-px before:flex-1 before:bg-surface-variant/50 after:h-px after:flex-1 after:bg-surface-variant/50 my-6">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-secondary font-semibold">Or</span>
+                </div>
+
+                <Button variant="outline" className="w-full py-6 rounded-xl border-[1.5px] border-outline-variant/30 hover:bg-surface-container text-primary flex items-center justify-center gap-3">
+                  <img
+                    alt="Google"
+                    className="w-5 h-5 group-hover:scale-110 transition-transform"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDa6fP1D8s6Etg-gSLpwwUZtIpDrWCPgV9OIuzDjQ4sVmeAAxIIOb2-S1draTIvlOhuB4tJC6_2AqTY3T1SGPRCmT0045QGWGUID0FtCVU6W-lKliQKNJm8j9rNuCX79dQXBySbltApYzyqn5xJKlXJfaT4dW_p7iPcoasTBB8tSor4HAblmYdpl0320ZnE3sZ2qCmOGu2NKMerGr5DBDrpVQF9Z7kYsKUJJ3r5SV0HDgSEwWzq-4l1pabZnSus3Z2Invw_uEyyvE"
+                  />
+                  <span>Login with Google</span>
+                </Button>
               </div>
               
               <div
                 className={`transition-all duration-500 ease-in-out ${
                   activeTab === "register"
-                    ? "opacity-100 transform translate-x-0"
-                    : "opacity-0 transform translate-x-12 absolute inset-0 pointer-events-none p-8 md:p-12"
+                    ? "opacity-100 transform translate-x-0 relative"
+                    : "opacity-0 transform translate-x-12 absolute inset-0 pointer-events-none p-8 md:p-12 hidden"
                 }`}
               >
-                {/* Social Registrations */}
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  <button className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl border-[1.5px] border-outline-variant/30 hover:bg-surface-container transition-all group">
-                    <img
-                      alt="Google"
-                      className="w-5 h-5 group-hover:scale-110 transition-transform"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDa6fP1D8s6Etg-gSLpwwUZtIpDrWCPgV9OIuzDjQ4sVmeAAxIIOb2-S1draTIvlOhuB4tJC6_2AqTY3T1SGPRCmT0045QGWGUID0FtCVU6W-lKliQKNJm8j9rNuCX79dQXBySbltApYzyqn5xJKlXJfaT4dW_p7iPcoasTBB8tSor4HAblmYdpl0320ZnE3sZ2qCmOGu2NKMerGr5DBDrpVQF9Z7kYsKUJJ3r5SV0HDgSEwWzq-4l1pabZnSus3Z2Invw_uEyyvE"
-                    />
-                    <span className="text-sm font-medium text-primary">Google</span>
-                  </button>
-                  <button className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl border-[1.5px] border-outline-variant/30 hover:bg-surface-container transition-all group">
-                    <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform text-primary">apple</span>
-                    <span className="text-sm font-medium text-primary">Apple</span>
-                  </button>
-                </div>
-
-                {/* Divider */}
-                <div className="relative flex items-center mb-8">
-                  <div className="flex-grow border-t border-surface-variant/50"></div>
-                  <span className="flex-shrink mx-4 text-[10px] uppercase tracking-[0.2em] text-secondary font-semibold">
-                    Or register with email
-                  </span>
-                  <div className="flex-grow border-t border-surface-variant/50"></div>
-                </div>
-
-                {/* Form */}
-                <form action="#" className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-                  <div className="space-y-1.5 focus-within:text-primary-container text-outline-variant transition-colors">
-                    <label
-                      className="block text-xs font-semibold text-secondary uppercase tracking-wider ml-1"
-                      htmlFor="register_name"
-                    >
-                      Full Name
-                    </label>
-                    <div className="relative">
-                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2">
-                        person
-                      </span>
-                      <input
-                        className="w-full pl-12 pr-4 py-3.5 bg-surface-container-low border-none rounded-xl text-primary placeholder:text-outline focus:ring-2 focus:ring-primary-container transition-all"
-                        id="register_name"
-                        placeholder="e.g. Julian Vane"
-                        type="text"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 focus-within:text-primary-container text-outline-variant transition-colors">
-                    <label
-                      className="block text-xs font-semibold text-secondary uppercase tracking-wider ml-1"
-                      htmlFor="register_email"
-                    >
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2">
-                        mail
-                      </span>
-                      <input
-                        className="w-full pl-12 pr-4 py-3.5 bg-surface-container-low border-none rounded-xl text-primary placeholder:text-outline focus:ring-2 focus:ring-primary-container transition-all"
-                        id="register_email"
-                        placeholder="name@university.edu"
-                        type="email"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 focus-within:text-primary-container text-outline-variant transition-colors">
-                    <div className="flex justify-between items-center ml-1">
-                      <label
-                        className="block text-xs font-semibold text-secondary uppercase tracking-wider"
-                        htmlFor="register_password"
-                      >
-                        Password
-                      </label>
-                    </div>
-                    <div className="relative">
-                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2">
-                        lock
-                      </span>
-                      <input
-                        className="w-full pl-12 pr-4 py-3.5 bg-surface-container-low border-none rounded-xl text-primary placeholder:text-outline focus:ring-2 focus:ring-primary-container transition-all"
-                        id="register_password"
-                        placeholder="••••••••"
-                        type="password"
-                      />
-                      <button
-                        className="absolute right-4 top-1/2 -translate-y-1/2 hover:text-primary transition-colors"
-                        type="button"
-                      >
-                        <span className="material-symbols-outlined text-lg opacity-70">visibility</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    className="w-full bg-primary-container text-on-primary font-headline font-bold py-4 rounded-xl shadow-lg shadow-primary-container/20 hover:bg-secondary transition-all hover:-translate-y-1 active:scale-[0.98] mt-2"
-                    type="submit"
+                <div className="flex flex-col items-center gap-2 mb-6">
+                  <div
+                    className="flex size-11 shrink-0 items-center justify-center rounded-full border border-surface-variant/50"
+                    aria-hidden="true"
                   >
-                    Create Account
-                  </button>
-                </form>
-              </div>
+                    <svg
+                      className="stroke-primary"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 32 32"
+                      aria-hidden="true"
+                    >
+                      <circle cx="16" cy="16" r="12" fill="none" strokeWidth="8" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col space-y-1.5 text-center">
+                    <h2 className="text-xl font-headline font-semibold tracking-tight text-primary">Create an Account</h2>
+                    <p className="text-sm text-secondary">
+                      Enter your details to create a new workspace.
+                    </p>
+                  </div>
+                </div>
 
+                <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="register-name" className="text-secondary font-semibold uppercase tracking-wider text-xs">Full Name</Label>
+                      <Input id="register-name" placeholder="e.g. Julian Vane" type="text" required className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-email" className="text-secondary font-semibold uppercase tracking-wider text-xs">Email</Label>
+                      <Input id="register-email" placeholder="hi@yourcompany.com" type="email" required className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="register-password" className="text-secondary font-semibold uppercase tracking-wider text-xs">Password</Label>
+                      <Input
+                        id="register-password"
+                        placeholder="Enter your password"
+                        type="password"
+                        required
+                        className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container"
+                      />
+                    </div>
+                  </div>
+                  
+                  <Button type="submit" className="w-full bg-primary-container text-on-primary font-headline font-bold py-6 rounded-xl hover:bg-secondary hover:-translate-y-1 active:scale-[0.98] transition-all my-2">
+                    Create Account
+                  </Button>
+                </form>
+
+                <div className="flex items-center gap-3 before:h-px before:flex-1 before:bg-surface-variant/50 after:h-px after:flex-1 after:bg-surface-variant/50 my-6">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-secondary font-semibold">Or</span>
+                </div>
+
+                <Button variant="outline" className="w-full py-6 rounded-xl border-[1.5px] border-outline-variant/30 hover:bg-surface-container text-primary flex items-center justify-center gap-3">
+                  <img
+                    alt="Google"
+                    className="w-5 h-5 group-hover:scale-110 transition-transform"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDa6fP1D8s6Etg-gSLpwwUZtIpDrWCPgV9OIuzDjQ4sVmeAAxIIOb2-S1draTIvlOhuB4tJC6_2AqTY3T1SGPRCmT0045QGWGUID0FtCVU6W-lKliQKNJm8j9rNuCX79dQXBySbltApYzyqn5xJKlXJfaT4dW_p7iPcoasTBB8tShore4HAblmYdpl0320ZnE3sZ2qCmOGu2NKMerGr5DBDrpVQF9Z7kYsKUJJ3r5SV0HDgSEwWzq-4l1pabZnSus3Z2Invw_uEyyvE"
+                  />
+                  <span>Sign up with Google</span>
+                </Button>
+              </div>
             </div>
 
             {/* Footer Tonal Base */}
