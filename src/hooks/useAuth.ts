@@ -8,24 +8,32 @@ import { useAuthStore } from "@/store/useAuthStore";
 export function useAuth() {
   const {
     user,
-    token,
+    accessToken,
+    refreshToken,
     isAuthenticated,
     isLoading,
     login,
     register,
     logout,
+    refresh,
+    verifyEmail,
+    resendVerification,
   } = useAuthStore();
 
   return {
     user,
-    token,
+    accessToken,
+    refreshToken,
     isAuthenticated,
     isLoading,
     login,
     register,
     logout,
-    isUser: user?.role === "user",
-    isInstructor: user?.role === "instructor",
-    isAdmin: user?.role === "admin",
+    refresh,
+    verifyEmail,
+    resendVerification,
+    isStudent: user?.role === "STUDENT",
+    isInstructor: user?.role === "INSTRUCTOR",
+    isAdmin: user?.role === "ADMIN",
   };
 }

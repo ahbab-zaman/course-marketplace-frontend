@@ -3,7 +3,7 @@
 // ============================================
 
 // ---------- User & Auth ----------
-export type UserRole = "user" | "instructor" | "admin";
+export type UserRole = "STUDENT" | "INSTRUCTOR" | "ADMIN";
 
 export interface User {
   id: string;
@@ -14,11 +14,14 @@ export interface User {
   bio?: string;
   createdAt: string;
   updatedAt: string;
+  isEmailVerified?: boolean;
+  isBlocked?: boolean;
 }
 
 export interface AuthState {
   user: User | null;
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -37,7 +40,8 @@ export interface RegisterCredentials {
 
 export interface AuthResponse {
   user: User;
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   message: string;
 }
 

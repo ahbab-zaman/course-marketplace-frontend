@@ -7,13 +7,14 @@ import apiClient from "@/lib/api-client";
 
 interface AuthStore {
   user: User | null;
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 
   // Actions
   setUser: (user: User) => void;
-  setToken: (token: string) => void;
+  setTokens: (accessToken: string, refreshToken: string) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (
     name: string,
@@ -21,23 +22,28 @@ interface AuthStore {
     password: string,
     role?: UserRole
   ) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  refresh: () => Promise<void>;
+  verifyEmail: (email: string, otp: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
   setLoading: (loading: boolean) => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
-      token: null,
+      accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
 
       setUser: (user) => set({ user, isAuthenticated: true }),
 
-      setToken: (token) => {
-        localStorage.setItem("token", token);
-        set({ token });
+      setTokens: (accessToken, refreshToken) => {
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        set({ accessToken, refreshToken });
       },
 
       login: async (email, password) => {
@@ -47,41 +53,84 @@ export const useAuthStore = create<AuthStore>()(
             email,
             password,
           });
-          const { user, token } = data;
-          localStorage.setItem("token", token);
-          set({ user, token, isAuthenticated: true, isLoading: false });
+          const { user, accessToken, refreshToken } = data;
+          get().setTokens(accessToken, refreshToken);
+          set({ user, isAuthenticated: true, isLoading: false });
         } catch (error) {
           set({ isLoading: false });
           throw error;
         }
       },
 
-      register: async (name, email, password, role = "user") => {
+      register: async (name, email, password, role = "STUDENT") => {
         set({ isLoading: true });
         try {
-          const { data } = await apiClient.post("/auth/register", {
+          await apiClient.post("/auth/register", {
             name,
             email,
             password,
             role,
           });
-          const { user, token } = data;
-          localStorage.setItem("token", token);
-          set({ user, token, isAuthenticated: true, isLoading: false });
+          // After register, user needs to verify email
+          set({ isLoading: false });
         } catch (error) {
           set({ isLoading: false });
           throw error;
         }
       },
 
-      logout: () => {
-        localStorage.removeItem("token");
+      logout: async () => {
+        try {
+          await apiClient.post("/auth/logout");
+        } catch (error) {
+          // Ignore logout errors
+        }
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
         set({
           user: null,
-          token: null,
+          accessToken: null,
+          refreshToken: null,
           isAuthenticated: false,
           isLoading: false,
         });
+      },
+
+      refresh: async () => {
+        const { refreshToken } = get();
+        if (!refreshToken) throw new Error("No refresh token");
+        const { data } = await apiClient.post("/auth/refresh", {
+          refreshToken,
+        });
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data;
+        get().setTokens(newAccessToken, newRefreshToken);
+      },
+
+      verifyEmail: async (email, otp) => {
+        set({ isLoading: true });
+        try {
+          await apiClient.post("/auth/verify-email", {
+            email,
+            otp,
+          });
+          set({ isLoading: false });
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      resendVerification: async (email) => {
+        set({ isLoading: true });
+        try {
+          await apiClient.post("/auth/resend-verification", {
+            email,
+          });
+          set({ isLoading: false });
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
       },
 
       setLoading: (isLoading) => set({ isLoading }),
@@ -90,7 +139,8 @@ export const useAuthStore = create<AuthStore>()(
       name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
       version: 1,

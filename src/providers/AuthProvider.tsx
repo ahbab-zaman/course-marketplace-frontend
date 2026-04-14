@@ -2,25 +2,26 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
+import apiClient from "@/lib/api-client";
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { token, setLoading, logout } = useAuthStore();
+  const { accessToken, setUser, setLoading, logout } = useAuthStore();
 
   useEffect(() => {
-    // Validate token on mount
+    // Validate token on mount and get user
     const validateAuth = async () => {
-      if (!token) {
+      if (!accessToken) {
         setLoading(false);
         return;
       }
 
       try {
-        // Token exists in store — the API interceptor will attach it
-        // You can add a /api/auth/me call here to validate
+        const { data } = await apiClient.get("/auth/me");
+        setUser(data.user);
         setLoading(false);
       } catch {
         logout();
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     validateAuth();
-  }, [token, setLoading, logout]);
+  }, [accessToken, setUser, setLoading, logout]);
 
   return <>{children}</>;
 }

@@ -7,8 +7,37 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [registerData, setRegisterData] = useState({ name: "", email: "", password: "" });
+  const { login, register, isLoading } = useAuth();
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await login(loginData.email, loginData.password);
+      toast.success("Login successful!");
+      router.push("/");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Login failed");
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await register(registerData.name, registerData.email, registerData.password);
+      toast.success("Registration successful! Please check your email for verification.");
+      router.push(`/verify-email?email=${encodeURIComponent(registerData.email)}`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Registration failed");
+    }
+  };
 
   return (
     <main className="flex-grow flex items-center justify-center p-6 md:p-12 relative overflow-hidden min-h-[calc(100vh-200px)] pt-24 pb-24">
@@ -91,11 +120,19 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-5" onSubmit={handleLogin}>
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="login-email" className="text-secondary font-semibold uppercase tracking-wider text-xs">Email</Label>
-                      <Input id="login-email" placeholder="hi@yourcompany.com" type="email" required className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container" />
+                      <Input 
+                        id="login-email" 
+                        placeholder="hi@yourcompany.com" 
+                        type="email" 
+                        required 
+                        value={loginData.email}
+                        onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
+                        className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container" 
+                      />
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
@@ -112,6 +149,8 @@ export default function AuthPage() {
                         placeholder="Enter your password"
                         type="password"
                         required
+                        value={loginData.password}
+                        onChange={(e) => setLoginData(prev => ({ ...prev, password: e.target.value }))}
                         className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container"
                       />
                     </div>
@@ -124,8 +163,8 @@ export default function AuthPage() {
                       </Label>
                     </div>
                   </div>
-                  <Button type="submit" className="w-full bg-primary-container text-on-primary font-headline font-bold py-6 rounded-xl hover:bg-secondary hover:-translate-y-1 active:scale-[0.98] transition-all">
-                    Sign in
+                  <Button type="submit" disabled={isLoading} className="w-full bg-primary-container text-on-primary font-headline font-bold py-6 rounded-xl hover:bg-secondary hover:-translate-y-1 active:scale-[0.98] transition-all">
+                    {isLoading ? "Signing in..." : "Sign in"}
                   </Button>
                 </form>
 
@@ -174,15 +213,31 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-5" onSubmit={handleRegister}>
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="register-name" className="text-secondary font-semibold uppercase tracking-wider text-xs">Full Name</Label>
-                      <Input id="register-name" placeholder="e.g. Julian Vane" type="text" required className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container" />
+                      <Input 
+                        id="register-name" 
+                        placeholder="e.g. Julian Vane" 
+                        type="text" 
+                        required 
+                        value={registerData.name}
+                        onChange={(e) => setRegisterData(prev => ({ ...prev, name: e.target.value }))}
+                        className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container" 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="register-email" className="text-secondary font-semibold uppercase tracking-wider text-xs">Email</Label>
-                      <Input id="register-email" placeholder="hi@yourcompany.com" type="email" required className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container" />
+                      <Input 
+                        id="register-email" 
+                        placeholder="hi@yourcompany.com" 
+                        type="email" 
+                        required 
+                        value={registerData.email}
+                        onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
+                        className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container" 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="register-password" className="text-secondary font-semibold uppercase tracking-wider text-xs">Password</Label>
@@ -191,13 +246,15 @@ export default function AuthPage() {
                         placeholder="Enter your password"
                         type="password"
                         required
+                        value={registerData.password}
+                        onChange={(e) => setRegisterData(prev => ({ ...prev, password: e.target.value }))}
                         className="py-3.5 px-4 bg-surface-container-low border-surface-variant/50 text-primary placeholder:text-outline focus-visible:ring-primary-container"
                       />
                     </div>
                   </div>
                   
-                  <Button type="submit" className="w-full bg-primary-container text-on-primary font-headline font-bold py-6 rounded-xl hover:bg-secondary hover:-translate-y-1 active:scale-[0.98] transition-all my-2">
-                    Create Account
+                  <Button type="submit" disabled={isLoading} className="w-full bg-primary-container text-on-primary font-headline font-bold py-6 rounded-xl hover:bg-secondary hover:-translate-y-1 active:scale-[0.98] transition-all my-2">
+                    {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
                 </form>
 
