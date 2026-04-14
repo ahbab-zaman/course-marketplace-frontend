@@ -7,6 +7,9 @@ import { InteractiveMenu } from "@/components/ui/modern-mobile-menu";
 import { motion, type Variants } from "framer-motion";
 import { Home, GraduationCap, Tag, Info, Mail } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useAuth } from "@/hooks/useAuth";
+import { UserDropdown } from "@/components/ui/user-dropdown";
+import { Button } from "@/components/ui/button";
 
 const menuItems = [
   {
@@ -94,6 +97,7 @@ const sharedTransition = {
 export function Navigation() {
   const pathname = usePathname();
   const { theme } = useTheme();
+  const { isAuthenticated } = useAuth();
   const isDarkTheme = theme === "dark";
 
   return (
@@ -201,18 +205,23 @@ export function Navigation() {
           </motion.div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <Link
-              href="/login"
-              className="text-[#775843] dark:text-[#dbe4e1] font-medium text-sm hover:text-[#26170c] transition-colors hidden sm:block"
-            >
-              Login
-            </Link>
-            <Link
-              href="/login"
-              className="inline-block bg-primary-container text-on-primary px-6 py-2.5 rounded-xl font-headline text-sm font-bold tracking-tight hover:bg-secondary transition-all active:scale-95 duration-300"
-            >
-              Get Started
-            </Link>
+            {isAuthenticated ? (
+              <UserDropdown />
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-[#775843] dark:text-[#dbe4e1] font-medium text-sm hover:text-[#26170c] transition-colors hidden sm:block"
+                >
+                  Login
+                </Link>
+                <Link href="/login">
+                  <Button className="bg-primary-container text-on-primary px-6 py-2.5 rounded-xl font-headline text-sm font-bold tracking-tight hover:bg-secondary transition-all active:scale-95 duration-300">
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
