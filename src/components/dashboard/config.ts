@@ -7,6 +7,7 @@ export interface DashboardNavItem {
   href: string;
   icon: string;
   description: string;
+  badge?: string;
 }
 
 export const dashboardNavigation: Record<DashboardRole, DashboardNavItem[]> = {
@@ -34,6 +35,7 @@ export const dashboardNavigation: Record<DashboardRole, DashboardNavItem[]> = {
       href: ROUTES.ADMIN_PAYMENTS,
       icon: "payments",
       description: "Revenue, payouts, and refunds",
+      badge: "12",
     },
     {
       label: "Reviews",
@@ -134,6 +136,7 @@ export const dashboardNavigation: Record<DashboardRole, DashboardNavItem[]> = {
       href: ROUTES.USER_WISHLIST,
       icon: "favorite",
       description: "Courses to purchase later",
+      badge: "3",
     },
     {
       label: "Orders",

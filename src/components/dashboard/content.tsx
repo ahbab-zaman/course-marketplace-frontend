@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronRight,
+  MoreHorizontal,
+  TrendingUp,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface MetricItem {
@@ -8,6 +13,173 @@ export interface MetricItem {
   value: string;
   detail: string;
   icon: string;
+}
+
+interface OverviewBoardProps {
+  eyebrow: string;
+  title: string;
+  description: string;
+  metrics: MetricItem[];
+  chartTitle: string;
+  chartValue: string;
+  chartDelta: string;
+  chartRange: string;
+  chartBars: number[];
+  primaryAction?: { label: string; href: string };
+  secondaryAction?: { label: string; href: string };
+}
+
+const metricCardStyles = [
+  "bg-[linear-gradient(180deg,#fff6ee_0%,#fffaf5_100%)]",
+  "bg-[linear-gradient(180deg,#f4fbf3_0%,#fbfffb_100%)]",
+  "bg-[linear-gradient(180deg,#eef2ff_0%,#f8f9ff_100%)]",
+  "bg-[linear-gradient(180deg,#f2f7f5_0%,#fbfdfc_100%)]",
+];
+
+const accentChipStyles = [
+  "bg-[#fff0dd] text-[#9a6a21]",
+  "bg-[#e6f6ea] text-[#2f7a45]",
+  "bg-[#e8eefc] text-[#4962b6]",
+  "bg-[#edf4f1] text-[#497266]",
+];
+
+function SurfaceAction({
+  action,
+  tone = "primary",
+}: {
+  action: { label: string; href: string };
+  tone?: "primary" | "secondary";
+}) {
+  return (
+    <Link
+      href={action.href}
+      className={cn(
+        "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5",
+        tone === "primary"
+          ? "bg-[#1f8f88] text-white shadow-[0_12px_24px_rgba(31,143,136,0.18)]"
+          : "border border-[color:rgba(17,24,39,0.08)] bg-white text-[var(--color-on-surface)] shadow-[0_8px_16px_rgba(15,23,42,0.05)]",
+      )}
+    >
+      {action.label}
+      <ArrowRight className="h-4 w-4" />
+    </Link>
+  );
+}
+
+export function OverviewBoard({
+  eyebrow,
+  title,
+  description,
+  metrics,
+  chartTitle,
+  chartValue,
+  chartDelta,
+  chartRange,
+  chartBars,
+  primaryAction,
+  secondaryAction,
+}: OverviewBoardProps) {
+  return (
+    <section className="space-y-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-3xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--color-on-surface-variant)]">
+            {eyebrow}
+          </p>
+          <h2 className="mt-3 font-headline text-3xl font-semibold tracking-tight text-[var(--color-on-surface)] md:text-[2.2rem]">
+            {title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-7 text-[var(--color-on-surface-variant)] md:text-base">
+            {description}
+          </p>
+        </div>
+        {(primaryAction || secondaryAction) && (
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {secondaryAction ? (
+              <SurfaceAction action={secondaryAction} tone="secondary" />
+            ) : null}
+            {primaryAction ? <SurfaceAction action={primaryAction} /> : null}
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-12">
+        <div className="grid gap-4 sm:grid-cols-2 xl:col-span-5">
+          {metrics.map((item, index) => (
+            <article
+              key={item.label}
+              className={cn(
+                "rounded-[1.6rem] border border-[color:rgba(15,23,42,0.06)] p-5 shadow-[0_16px_32px_rgba(15,23,42,0.05)]",
+                metricCardStyles[index % metricCardStyles.length],
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-[var(--color-on-surface-variant)]">
+                    {item.label}
+                  </p>
+                  <p className="mt-3 text-[1.75rem] font-semibold tracking-tight text-[var(--color-on-surface)]">
+                    {item.value}
+                  </p>
+                </div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-[#1f8f88] shadow-[inset_0_0_0_1px_rgba(15,23,42,0.05)]">
+                  <span className="material-symbols-outlined text-[18px]">
+                    {item.icon}
+                  </span>
+                </div>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-[var(--color-on-surface-variant)]">
+                {item.detail}
+              </p>
+            </article>
+          ))}
+        </div>
+
+        <article className="overflow-hidden rounded-[1.8rem] bg-[linear-gradient(180deg,#22a39b_0%,#17867f_100%)] p-5 text-white shadow-[0_24px_48px_rgba(23,134,127,0.22)] xl:col-span-7">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <p className="text-sm text-white/78">{chartTitle}</p>
+              <div className="mt-2 flex items-center gap-3">
+                <p className="text-3xl font-semibold tracking-tight">
+                  {chartValue}
+                </p>
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/14 px-2.5 py-1 text-xs font-semibold text-white/88">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  {chartDelta}
+                </span>
+              </div>
+            </div>
+            <span className="inline-flex w-fit rounded-full bg-white/16 px-3 py-1.5 text-xs font-medium text-white/82">
+              {chartRange}
+            </span>
+          </div>
+
+          <div className="mt-8">
+            <div className="flex h-56 items-end gap-3">
+              {chartBars.map((bar, index) => (
+                <div key={`${bar}-${index}`} className="flex flex-1 items-end">
+                  <div
+                    className={cn(
+                      "w-full rounded-t-[0.9rem] bg-[#fff4c9] shadow-[0_8px_16px_rgba(0,0,0,0.06)]",
+                      index === 3 && "bg-white",
+                    )}
+                    style={{ height: `${Math.max(bar, 16)}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 grid grid-cols-7 gap-3 text-[11px] font-medium text-white/72">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <span key={day} className="text-center">
+                  {day}
+                </span>
+              ))}
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  );
 }
 
 export function DashboardHero({
@@ -24,40 +196,25 @@ export function DashboardHero({
   secondaryAction?: { label: string; href: string };
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-[color:rgba(38,23,12,0.08)] bg-[linear-gradient(135deg,rgba(38,23,12,0.98),rgba(87,67,53,0.94))] px-5 py-6 text-white shadow-[0_30px_60px_rgba(38,23,12,0.18)] md:px-8 md:py-8">
-      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-[rgba(251,221,202,0.24)] blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-28 w-48 bg-[linear-gradient(135deg,transparent,rgba(112,248,232,0.12))]" />
-      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    <section className="rounded-[1.8rem] border border-[color:rgba(15,23,42,0.06)] bg-[linear-gradient(180deg,#ffffff_0%,#f7faf9_100%)] p-6 shadow-[0_16px_34px_rgba(15,23,42,0.05)] md:p-7">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
-          <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/65">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--color-on-surface-variant)]">
             {eyebrow}
           </p>
-          <h2 className="mt-3 font-headline text-3xl font-semibold tracking-tight md:text-4xl">
+          <h2 className="mt-3 font-headline text-3xl font-semibold tracking-tight text-[var(--color-on-surface)] md:text-[2.1rem]">
             {title}
           </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-white/74 md:text-base">
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--color-on-surface-variant)] md:text-base">
             {description}
           </p>
         </div>
         {(primaryAction || secondaryAction) && (
           <div className="flex flex-col gap-3 sm:flex-row">
             {secondaryAction ? (
-              <Link
-                href={secondaryAction.href}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 py-3 text-sm font-medium text-white transition-transform duration-300 hover:-translate-y-0.5"
-              >
-                {secondaryAction.label}
-              </Link>
+              <SurfaceAction action={secondaryAction} tone="secondary" />
             ) : null}
-            {primaryAction ? (
-              <Link
-                href={primaryAction.href}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-primary-fixed)] px-5 py-3 text-sm font-semibold text-[var(--primary)] transition-transform duration-300 hover:-translate-y-0.5"
-              >
-                {primaryAction.label}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            ) : null}
+            {primaryAction ? <SurfaceAction action={primaryAction} /> : null}
           </div>
         )}
       </div>
@@ -68,10 +225,13 @@ export function DashboardHero({
 export function MetricGrid({ items }: { items: MetricItem[] }) {
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <article
           key={item.label}
-          className="group rounded-[1.6rem] border border-[color:rgba(38,23,12,0.08)] bg-white/75 p-5 shadow-[0_14px_30px_rgba(38,23,12,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_44px_rgba(38,23,12,0.09)]"
+          className={cn(
+            "rounded-[1.5rem] border border-[color:rgba(15,23,42,0.06)] p-5 shadow-[0_14px_30px_rgba(15,23,42,0.05)] transition-transform duration-200 hover:-translate-y-1",
+            metricCardStyles[index % metricCardStyles.length],
+          )}
         >
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -82,8 +242,8 @@ export function MetricGrid({ items }: { items: MetricItem[] }) {
                 {item.value}
               </p>
             </div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-primary-fixed)] text-[var(--primary)] transition-transform duration-300 group-hover:-translate-y-0.5">
-              <span className="material-symbols-outlined text-[20px]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/82 text-[#1f8f88] shadow-[inset_0_0_0_1px_rgba(15,23,42,0.05)]">
+              <span className="material-symbols-outlined text-[18px]">
                 {item.icon}
               </span>
             </div>
@@ -104,7 +264,11 @@ export function DashboardGrid({
   children: ReactNode;
   className?: string;
 }) {
-  return <section className={cn("grid gap-4 xl:grid-cols-12", className)}>{children}</section>;
+  return (
+    <section className={cn("grid gap-5 xl:grid-cols-12", className)}>
+      {children}
+    </section>
+  );
 }
 
 export function Panel({
@@ -125,17 +289,17 @@ export function Panel({
   return (
     <article
       className={cn(
-        "rounded-[1.75rem] border border-[color:rgba(38,23,12,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(231,240,236,0.62))] p-5 shadow-[0_16px_34px_rgba(38,23,12,0.05)]",
+        "rounded-[1.7rem] border border-[color:rgba(15,23,42,0.06)] bg-[linear-gradient(180deg,#ffffff_0%,#f8fbfa_100%)] p-5 shadow-[0_16px_34px_rgba(15,23,42,0.05)] md:p-6",
         className,
       )}
     >
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="font-headline text-xl font-semibold tracking-tight text-[var(--color-on-surface)]">
+          <h3 className="font-headline text-[1.35rem] font-semibold tracking-tight text-[var(--color-on-surface)]">
             {title}
           </h3>
           {description ? (
-            <p className="mt-2 text-sm leading-6 text-[var(--color-on-surface-variant)]">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-on-surface-variant)]">
               {description}
             </p>
           ) : null}
@@ -143,7 +307,7 @@ export function Panel({
         {actionLabel && actionHref ? (
           <Link
             href={actionHref}
-            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--primary)]"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[#1f8f88]"
           >
             {actionLabel}
             <ChevronRight className="h-4 w-4" />
@@ -162,12 +326,12 @@ export function ProgressList({
 }) {
   return (
     <div className="space-y-4">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <div
           key={item.label}
-          className="rounded-[1.35rem] border border-[color:rgba(38,23,12,0.08)] bg-white/70 p-4"
+          className="rounded-[1.35rem] border border-[color:rgba(15,23,42,0.06)] bg-white p-4 shadow-[0_10px_20px_rgba(15,23,42,0.04)]"
         >
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium text-[var(--color-on-surface)]">
                 {item.label}
@@ -176,13 +340,18 @@ export function ProgressList({
                 {item.detail}
               </p>
             </div>
-            <p className="text-sm font-semibold text-[var(--primary)]">
+            <span
+              className={cn(
+                "inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold",
+                accentChipStyles[index % accentChipStyles.length],
+              )}
+            >
               {item.value}
-            </p>
+            </span>
           </div>
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-[var(--color-surface-container-highest)]">
+          <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-[#edf2f1]">
             <div
-              className="h-full rounded-full bg-[linear-gradient(90deg,var(--primary),#7a5a45)]"
+              className="h-full rounded-full bg-[linear-gradient(90deg,#26a69a_0%,#67d6cb_100%)]"
               style={{ width: `${item.progress}%` }}
             />
           </div>
@@ -207,10 +376,12 @@ export function QuickList({
       {items.map((item) => (
         <div
           key={`${item.title}-${item.meta}`}
-          className="flex flex-col gap-3 rounded-[1.35rem] border border-[color:rgba(38,23,12,0.08)] bg-white/68 p-4 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-4 rounded-[1.35rem] border border-[color:rgba(15,23,42,0.06)] bg-white p-4 shadow-[0_10px_20px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <p className="font-medium text-[var(--color-on-surface)]">{item.title}</p>
+            <p className="font-medium text-[var(--color-on-surface)]">
+              {item.title}
+            </p>
             <p className="mt-1 text-sm leading-6 text-[var(--color-on-surface-variant)]">
               {item.detail}
             </p>
@@ -218,12 +389,10 @@ export function QuickList({
           <span
             className={cn(
               "inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold",
-              item.tone === "positive" &&
-                "bg-emerald-100 text-emerald-700",
-              item.tone === "warning" &&
-                "bg-amber-100 text-amber-700",
+              item.tone === "positive" && "bg-[#e8f7ef] text-[#2f7a45]",
+              item.tone === "warning" && "bg-[#fff3df] text-[#9a6a21]",
               (!item.tone || item.tone === "default") &&
-                "bg-[var(--color-primary-fixed)] text-[var(--primary)]",
+                "bg-[#edf4f1] text-[#496a61]",
             )}
           >
             {item.meta}
@@ -242,13 +411,13 @@ export function TableCard({
   rows: string[][];
 }) {
   return (
-    <div className="overflow-hidden rounded-[1.35rem] border border-[color:rgba(38,23,12,0.08)] bg-white/75">
+    <div className="overflow-hidden rounded-[1.4rem] border border-[color:rgba(15,23,42,0.06)] bg-white shadow-[0_12px_24px_rgba(15,23,42,0.04)]">
       <div className="overflow-x-auto">
         <table className="min-w-full text-left">
-          <thead className="bg-[var(--color-surface-container-low)] text-sm text-[var(--color-on-surface-variant)]">
+          <thead className="bg-[#f6f8f7] text-sm text-[var(--color-on-surface-variant)]">
             <tr>
               {columns.map((column) => (
-                <th key={column} className="px-4 py-3 font-medium">
+                <th key={column} className="px-5 py-4 font-medium">
                   {column}
                 </th>
               ))}
@@ -258,10 +427,13 @@ export function TableCard({
             {rows.map((row, rowIndex) => (
               <tr
                 key={`${row[0]}-${rowIndex}`}
-                className="border-t border-[color:rgba(38,23,12,0.08)] text-sm text-[var(--color-on-surface)]"
+                className="border-t border-[color:rgba(15,23,42,0.06)] text-sm text-[var(--color-on-surface)]"
               >
                 {row.map((cell, cellIndex) => (
-                  <td key={`${cell}-${cellIndex}`} className="px-4 py-3.5 align-top">
+                  <td
+                    key={`${cell}-${cellIndex}`}
+                    className="px-5 py-4 align-top whitespace-nowrap"
+                  >
                     {cell}
                   </td>
                 ))}
@@ -281,14 +453,17 @@ export function ActionTiles({
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <Link
           key={item.href}
           href={item.href}
-          className="group rounded-[1.5rem] border border-[color:rgba(38,23,12,0.08)] bg-white/72 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[color:rgba(38,23,12,0.14)] hover:shadow-[0_18px_36px_rgba(38,23,12,0.07)]"
+          className={cn(
+            "group rounded-[1.35rem] border border-[color:rgba(15,23,42,0.06)] p-4 shadow-[0_12px_24px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-1",
+            metricCardStyles[index % metricCardStyles.length],
+          )}
         >
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-primary-fixed)] text-[var(--primary)] transition-transform duration-300 group-hover:-translate-y-0.5">
-            <span className="material-symbols-outlined text-[20px]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/82 text-[#1f8f88] shadow-[inset_0_0_0_1px_rgba(15,23,42,0.05)]">
+            <span className="material-symbols-outlined text-[18px]">
               {item.icon}
             </span>
           </div>
@@ -298,12 +473,67 @@ export function ActionTiles({
           <p className="mt-2 text-sm leading-6 text-[var(--color-on-surface-variant)]">
             {item.description}
           </p>
-          <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--primary)]">
+          <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#1f8f88]">
             Open view
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
           </span>
         </Link>
       ))}
+    </div>
+  );
+}
+
+export function SummaryList({
+  title,
+  items,
+}: {
+  title: string;
+  items: Array<{ label: string; detail: string; value: string }>;
+}) {
+  return (
+    <div className="rounded-[1.4rem] border border-[color:rgba(15,23,42,0.06)] bg-white p-4 shadow-[0_10px_20px_rgba(15,23,42,0.04)]">
+      <div className="mb-4 flex items-center justify-between">
+        <h4 className="font-headline text-lg font-semibold tracking-tight text-[var(--color-on-surface)]">
+          {title}
+        </h4>
+        <button
+          type="button"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#f4f6f5] text-[var(--color-on-surface-variant)]"
+          aria-label={`More ${title}`}
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="space-y-3">
+        {items.map((item, index) => (
+          <div
+            key={`${item.label}-${item.value}`}
+            className="flex items-center justify-between gap-3 rounded-[1.1rem] px-1 py-1"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <div
+                className={cn(
+                  "flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold",
+                  accentChipStyles[index % accentChipStyles.length],
+                )}
+              >
+                {item.label.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-[var(--color-on-surface)]">
+                  {item.label}
+                </p>
+                <p className="truncate text-xs text-[var(--color-on-surface-variant)]">
+                  {item.detail}
+                </p>
+              </div>
+            </div>
+            <p className="text-sm font-semibold text-[var(--color-on-surface)]">
+              {item.value}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

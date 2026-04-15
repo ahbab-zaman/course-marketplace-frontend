@@ -3,9 +3,11 @@ import {
   DashboardGrid,
   DashboardHero,
   MetricGrid,
+  OverviewBoard,
   Panel,
   ProgressList,
   QuickList,
+  SummaryList,
   TableCard,
   type MetricItem,
 } from "./content";
@@ -95,49 +97,50 @@ const adminMetrics: MetricItem[] = [
 export function UserDashboardContent() {
   return (
     <div className="space-y-5">
-      <DashboardHero
+      <OverviewBoard
         eyebrow="Student overview"
-        title="Shape your next learning sprint."
-        description="Your dashboard now keeps active lessons, saved purchases, milestones, and certificates in one place so you can move between devices without losing context."
+        title="Welcome back"
+        description="Your learning dashboard is now spaced like a proper workspace: clear progress, focused actions, and a faster path back into the courses that matter this week."
+        metrics={studentMetrics}
+        chartTitle="Weekly study flow"
+        chartValue="12.4h"
+        chartDelta="+18%"
+        chartRange="Last 7 days"
+        chartBars={[48, 32, 66, 74, 35, 58, 41]}
         primaryAction={{ label: "Browse new courses", href: ROUTES.COURSES }}
         secondaryAction={{ label: "Review progress", href: ROUTES.USER_PROGRESS }}
       />
-      <MetricGrid items={studentMetrics} />
       <DashboardGrid>
         <Panel
-          title="Continue learning"
-          description="Jump back into the sessions that are closest to completion."
-          actionLabel="All courses"
-          actionHref={ROUTES.USER_COURSES}
-          className="xl:col-span-7"
+          title="Recent learning"
+          description="Resume the sessions closest to completion without scanning a crowded list."
+          className="xl:col-span-6"
         >
-          <ProgressList
+          <SummaryList
+            title="Continue"
             items={[
               {
                 label: "Advanced React Patterns",
-                detail: "Next up: compound components and state charts",
+                detail: "Next: compound components and state charts",
                 value: "78%",
-                progress: 78,
               },
               {
                 label: "Design Systems in Practice",
-                detail: "Next up: token strategy and component audits",
+                detail: "Next: token strategy and component audits",
                 value: "54%",
-                progress: 54,
               },
               {
                 label: "SQL for Product Teams",
-                detail: "Next up: cohort retention and funnel analysis",
+                detail: "Next: cohort retention and funnel analysis",
                 value: "39%",
-                progress: 39,
               },
             ]}
           />
         </Panel>
         <Panel
-          title="Quick actions"
-          description="Keep momentum with the most common student tasks."
-          className="xl:col-span-5"
+          title="Spending plan"
+          description="Saved items grouped like lightweight action cards so the next purchase is easy to compare."
+          className="xl:col-span-6"
         >
           <ActionTiles
             items={[
@@ -165,9 +168,37 @@ export function UserDashboardContent() {
       </DashboardGrid>
       <DashboardGrid>
         <Panel
-          title="Recent activity"
-          description="A readable snapshot of what changed in the last few days."
+          title="Progress overview"
+          description="Active courses stay visible with enough room for context and progress."
           className="xl:col-span-7"
+        >
+          <ProgressList
+            items={[
+              {
+                label: "Advanced React Patterns",
+                detail: "42 minutes left to reach the capstone lesson.",
+                value: "78%",
+                progress: 78,
+              },
+              {
+                label: "Design Systems in Practice",
+                detail: "Two assignments remain in the documentation block.",
+                value: "54%",
+                progress: 54,
+              },
+              {
+                label: "SQL for Product Teams",
+                detail: "Keep momentum by finishing the analysis lesson set.",
+                value: "39%",
+                progress: 39,
+              },
+            ]}
+          />
+        </Panel>
+        <Panel
+          title="Latest activity"
+          description="A compact feed of changes that matter this week."
+          className="xl:col-span-5"
         >
           <QuickList
             items={[
@@ -179,40 +210,14 @@ export function UserDashboardContent() {
               },
               {
                 title: "Saved Growth Product Strategy to wishlist",
-                detail: "You flagged this course for the next billing cycle",
+                detail: "Flagged for the next billing cycle",
                 meta: "Yesterday",
               },
               {
                 title: "Certificate issued for UI Writing Essentials",
-                detail: "Download or share directly from your certificates page",
+                detail: "Ready to download or share",
                 meta: "2 days ago",
                 tone: "positive",
-              },
-            ]}
-          />
-        </Panel>
-        <Panel
-          title="Weekly focus"
-          description="Three themes to keep your study sessions structured."
-          className="xl:col-span-5"
-        >
-          <QuickList
-            items={[
-              {
-                title: "Finish two near-complete lessons",
-                detail: "Close the loop on modules already above 70% progress.",
-                meta: "Priority",
-                tone: "warning",
-              },
-              {
-                title: "Review saved certificates",
-                detail: "Keep your learning portfolio clean and current.",
-                meta: "15 min",
-              },
-              {
-                title: "Add one new course to your plan",
-                detail: "Balance technical depth with one applied business topic.",
-                meta: "Suggested",
               },
             ]}
           />
@@ -410,10 +415,16 @@ export function UserSettingsContent() {
 export function InstructorDashboardContent() {
   return (
     <div className="space-y-5">
-      <DashboardHero
+      <OverviewBoard
         eyebrow="Instructor overview"
-        title="Run your teaching business from one adaptive workspace."
-        description="The instructor dashboard now covers course inventory, launch workflows, reviews, student insights, and revenue paths with a consistent layout that scales down cleanly."
+        title="Welcome back"
+        description="Your instructor workspace now mirrors the cleaner finance-style layout: lighter cards, one clear chart surface, and faster access to launches, reviews, and revenue."
+        metrics={instructorMetrics}
+        chartTitle="Revenue performance"
+        chartValue="$18.4k"
+        chartDelta="+12%"
+        chartRange="This month"
+        chartBars={[36, 44, 58, 72, 49, 68, 54]}
         primaryAction={{
           label: "Create new course",
           href: ROUTES.INSTRUCTOR_CREATE_COURSE,
@@ -423,33 +434,29 @@ export function InstructorDashboardContent() {
           href: ROUTES.INSTRUCTOR_ANALYTICS,
         }}
       />
-      <MetricGrid items={instructorMetrics} />
       <DashboardGrid>
         <Panel
           title="Course pipeline"
-          description="Keep drafts, published content, and revisions visible."
-          actionLabel="Manage courses"
-          actionHref={ROUTES.INSTRUCTOR_COURSES}
-          className="xl:col-span-7"
+          description="Publishing work stays readable with stronger hierarchy and less stacking."
+          className="xl:col-span-6"
         >
-          <QuickList
+          <SummaryList
+            title="Pipeline"
             items={[
               {
-                title: "Advanced Product Strategy",
-                detail: "Launch window confirmed for April 24 with pricing review pending.",
-                meta: "Scheduled",
+                label: "Advanced Product Strategy",
+                detail: "Launch window confirmed, pricing review pending",
+                value: "Scheduled",
               },
               {
-                title: "Design Systems in Practice",
-                detail: "Three learner questions need answers in the resources section.",
-                meta: "Needs attention",
-                tone: "warning",
+                label: "Design Systems in Practice",
+                detail: "Three learner questions need replies in resources",
+                value: "Needs attention",
               },
               {
-                title: "AI Workflow Systems",
-                detail: "Strong conversion this week from the public pricing page.",
-                meta: "Trending",
-                tone: "positive",
+                label: "AI Workflow Systems",
+                detail: "Public pricing page is driving stronger conversion",
+                value: "Trending",
               },
             ]}
           />
@@ -457,7 +464,7 @@ export function InstructorDashboardContent() {
         <Panel
           title="Teaching shortcuts"
           description="Frequently used instructor actions surfaced as cards."
-          className="xl:col-span-5"
+          className="xl:col-span-6"
         >
           <ActionTiles
             items={[
@@ -619,19 +626,19 @@ export function InstructorReviewsContent() {
       <QuickList
         items={[
           {
-            title: "“Excellent pacing and real-world examples.”",
+            title: '"Excellent pacing and real-world examples."',
             detail: "AI Workflow Systems · from Sara M.",
             meta: "5 stars",
             tone: "positive",
           },
           {
-            title: "“Module 3 could be tighter.”",
+            title: '"Module 3 could be tighter."',
             detail: "Design Systems in Practice · from Kelvin R.",
             meta: "Actionable",
             tone: "warning",
           },
           {
-            title: "“Would love a worksheet for the pricing section.”",
+            title: '"Would love a worksheet for the pricing section."',
             detail: "Advanced Product Strategy · from Nadia T.",
             meta: "Feature request",
           },
@@ -692,38 +699,42 @@ export function InstructorSettingsContent() {
 export function AdminDashboardContent() {
   return (
     <div className="space-y-5">
-      <DashboardHero
+      <OverviewBoard
         eyebrow="Admin overview"
-        title="Platform health without the clutter."
-        description="The admin dashboard now ties together moderation, payments, analytics, and configuration with one layout language, clearer hierarchy, and touch-friendly controls."
+        title="Welcome back"
+        description="The admin area now uses the same open, reference-driven dashboard pattern with breathable cards, a primary chart surface, and cleaner moderation visibility."
+        metrics={adminMetrics}
+        chartTitle="Platform revenue"
+        chartValue="$264k"
+        chartDelta="+19%"
+        chartRange="Quarter to date"
+        chartBars={[28, 46, 41, 67, 58, 71, 63]}
         primaryAction={{ label: "Review users", href: ROUTES.ADMIN_USERS }}
         secondaryAction={{ label: "Open analytics", href: ROUTES.ADMIN_ANALYTICS }}
       />
-      <MetricGrid items={adminMetrics} />
       <DashboardGrid>
         <Panel
           title="Priority queue"
-          description="Current items that need operational attention."
-          className="xl:col-span-7"
+          description="Operational tasks are grouped in a calmer list instead of one dense admin stack."
+          className="xl:col-span-6"
         >
-          <QuickList
+          <SummaryList
+            title="Attention"
             items={[
               {
-                title: "31 course submissions pending review",
-                detail: "Most are waiting on thumbnail and curriculum checks.",
-                meta: "Moderation",
-                tone: "warning",
+                label: "Course submissions",
+                detail: "31 items waiting on thumbnail and curriculum checks",
+                value: "Moderation",
               },
               {
-                title: "2 payout exceptions flagged",
-                detail: "Bank verification failed for one instructor account.",
-                meta: "Finance",
+                label: "Payout exceptions",
+                detail: "Bank verification failed for one instructor account",
+                value: "Finance",
               },
               {
-                title: "Retention up for new learner cohorts",
-                detail: "First-week retention improved after onboarding changes.",
-                meta: "Positive",
-                tone: "positive",
+                label: "Retention signal",
+                detail: "First-week retention improved after onboarding changes",
+                value: "Positive",
               },
             ]}
           />
@@ -731,7 +742,7 @@ export function AdminDashboardContent() {
         <Panel
           title="Admin shortcuts"
           description="Fast access to the busiest management areas."
-          className="xl:col-span-5"
+          className="xl:col-span-6"
         >
           <ActionTiles
             items={[

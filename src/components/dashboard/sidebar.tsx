@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, Search, Bell, PanelLeftClose, Sparkles } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  LogOut,
+  Menu,
+  Search,
+  Settings,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   dashboardNavigation,
@@ -34,7 +41,7 @@ function DashboardNav({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="space-y-2" aria-label="Dashboard navigation">
+    <nav className="space-y-1.5" aria-label="Dashboard navigation">
       {items.map((item) => {
         const isActive =
           pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -45,48 +52,30 @@ function DashboardNav({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "group relative block overflow-hidden rounded-[1.35rem] border px-4 py-3 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2",
+              "flex items-center gap-3 rounded-[1rem] px-3 py-2.5 text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f8f88] focus-visible:ring-offset-2",
               isActive
-                ? "border-[color:rgba(38,23,12,0.15)] bg-[linear-gradient(135deg,rgba(38,23,12,0.96),rgba(87,67,53,0.92))] text-[var(--primary-foreground)] shadow-[0_18px_40px_rgba(38,23,12,0.18)]"
-                : "border-[color:rgba(38,23,12,0.08)] bg-white/70 text-[var(--color-on-surface)] hover:-translate-y-0.5 hover:border-[color:rgba(38,23,12,0.14)] hover:bg-white hover:shadow-[0_16px_34px_rgba(38,23,12,0.08)]",
+                ? "bg-[#f3f5f4] font-semibold text-[var(--color-on-surface)] shadow-[inset_0_0_0_1px_rgba(15,23,42,0.04)]"
+                : "text-[var(--color-on-surface-variant)] hover:bg-[#f7f8f8] hover:text-[var(--color-on-surface)]",
             )}
           >
             <div
               className={cn(
-                "pointer-events-none absolute inset-0 opacity-0 transition duration-300 group-hover:opacity-100",
-                !isActive &&
-                  "bg-[linear-gradient(120deg,transparent,rgba(38,23,12,0.05),transparent)]",
+                "flex h-8 w-8 items-center justify-center rounded-full",
+                isActive ? "bg-white text-[#1f8f88]" : "bg-[#f3f5f4] text-[#7a8481]",
               )}
-            />
-            <div className="relative flex items-start gap-3">
-              <div
-                className={cn(
-                  "mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl border text-base transition duration-300",
-                  isActive
-                    ? "border-white/15 bg-white/10 text-white"
-                    : "border-[color:rgba(38,23,12,0.08)] bg-[var(--color-surface-container-low)] text-[var(--primary)] group-hover:bg-[var(--color-primary-fixed)]",
-                )}
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  {item.icon}
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold tracking-tight">
-                  {item.label}
-                </p>
-                <p
-                  className={cn(
-                    "mt-1 text-xs leading-5",
-                    isActive
-                      ? "text-white/75"
-                      : "text-[var(--color-on-surface-variant)]",
-                  )}
-                >
-                  {item.description}
-                </p>
-              </div>
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {item.icon}
+              </span>
             </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate">{item.label}</p>
+            </div>
+            {item.badge ? (
+              <span className="rounded-full bg-[#dff4ee] px-2 py-0.5 text-[10px] font-semibold text-[#1f8f88]">
+                {item.badge}
+              </span>
+            ) : null}
           </Link>
         );
       })}
@@ -99,111 +88,104 @@ export function Sidebar({ userRole }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const items = dashboardNavigation[userRole];
   const roleMeta = dashboardRoleMeta[userRole];
-  const currentItem =
-    items.find(
-      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-    ) ?? items[0];
 
   const shell = (
-    <div className="flex h-full flex-col gap-6">
-      <div className="rounded-[1.8rem] border border-[color:rgba(38,23,12,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(231,240,236,0.96))] p-5 shadow-[0_12px_30px_rgba(38,23,12,0.08)]">
-        <Link href="/" className="inline-flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--primary)] text-white shadow-[0_12px_24px_rgba(38,23,12,0.18)]">
-            <Sparkles className="h-5 w-5" />
-          </div>
+    <div className="flex h-full flex-col">
+      <div className="border-b border-[color:rgba(15,23,42,0.06)] pb-6">
+        <Link href="/" className="inline-flex items-center">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.28em] text-[var(--color-on-surface-variant)]">
-              Course Marketplace
+            <p className="text-lg font-semibold tracking-tight text-[var(--color-on-surface)]">
+              OFSPACE.CO
             </p>
-            <p className="font-headline text-xl font-semibold tracking-tight text-[var(--primary)]">
+            <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.24em] text-[var(--color-on-surface-variant)]">
               {roleMeta.label}
             </p>
           </div>
         </Link>
+      </div>
 
-        <div className="mt-5 rounded-[1.4rem] bg-[var(--color-surface-container-low)] p-4">
-          <p className="text-xs font-medium uppercase tracking-[0.24em] text-[var(--color-on-surface-variant)]">
-            Active workspace
-          </p>
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-base font-semibold text-[var(--color-on-surface)]">
-                {currentItem.label}
-              </p>
-              <p className="mt-1 text-sm text-[var(--color-on-surface-variant)]">
-                {currentItem.description}
-              </p>
-            </div>
-            <span className="rounded-full bg-[var(--color-primary-fixed)] px-3 py-1 text-xs font-semibold text-[var(--primary)]">
-              {roleMeta.badge}
-            </span>
-          </div>
+      <div className="pt-6">
+        <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--color-on-surface-variant)]">
+          Main menu
+        </p>
+        <div className="mt-3">
+          <DashboardNav
+            items={items.slice(0, Math.min(items.length, 4))}
+            pathname={pathname}
+            onNavigate={() => setMobileOpen(false)}
+          />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-1">
-        <DashboardNav
-          items={items}
-          pathname={pathname}
-          onNavigate={() => setMobileOpen(false)}
-        />
-      </div>
+      {items.length > 4 ? (
+        <div className="pt-8">
+          <div className="flex items-center justify-between px-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--color-on-surface-variant)]">
+              Account management
+            </p>
+            <ChevronDown className="h-4 w-4 text-[var(--color-on-surface-variant)]" />
+          </div>
+          <div className="mt-3">
+            <DashboardNav
+              items={items.slice(4)}
+              pathname={pathname}
+              onNavigate={() => setMobileOpen(false)}
+            />
+          </div>
+        </div>
+      ) : null}
 
-      <div className="rounded-[1.5rem] border border-[color:rgba(38,23,12,0.08)] bg-white/80 p-4">
-        <p className="text-sm font-semibold text-[var(--color-on-surface)]">
-          Need a quick check?
-        </p>
-        <p className="mt-1 text-sm leading-6 text-[var(--color-on-surface-variant)]">
-          Review activity, respond to updates, and keep the workspace clean.
-        </p>
+      <div className="mt-auto space-y-1 border-t border-[color:rgba(15,23,42,0.06)] pt-6">
         <Link
-          href={items[0].href}
-          className="mt-4 inline-flex items-center gap-2 rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white transition-transform duration-300 hover:-translate-y-0.5"
+          href={items[items.length - 1]?.href ?? "/"}
+          className="flex items-center gap-3 rounded-[1rem] px-3 py-2.5 text-sm text-[var(--color-on-surface-variant)] transition-colors hover:bg-[#f7f8f8] hover:text-[var(--color-on-surface)]"
         >
-          <PanelLeftClose className="h-4 w-4" />
-          Return to overview
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f3f5f4] text-[#7a8481]">
+            <Settings className="h-4 w-4" />
+          </div>
+          <span>Setting</span>
         </Link>
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 rounded-[1rem] px-3 py-2.5 text-left text-sm text-[var(--color-on-surface-variant)] transition-colors hover:bg-[#f7f8f8] hover:text-[var(--color-on-surface)]"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f3f5f4] text-[#7a8481]">
+            <LogOut className="h-4 w-4" />
+          </div>
+          <span>Log out</span>
+        </button>
       </div>
     </div>
   );
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-screen w-[320px] shrink-0 p-5 xl:block">
-        <div className="h-full overflow-hidden rounded-[2rem] bg-[linear-gradient(180deg,rgba(242,251,247,0.95),rgba(231,240,236,0.92))] p-5 shadow-[0_24px_50px_rgba(38,23,12,0.08)] ring-1 ring-[color:rgba(38,23,12,0.06)]">
+      <aside className="sticky top-0 hidden h-[calc(100vh-2.5rem)] w-[280px] shrink-0 xl:block">
+        <div className="h-full rounded-[1.9rem] border border-[color:rgba(15,23,42,0.06)] bg-white px-5 py-6 shadow-[0_24px_50px_rgba(15,23,42,0.06)]">
           {shell}
         </div>
       </aside>
 
       <div className="xl:hidden">
-        <div className="flex items-center justify-between gap-3 rounded-[1.5rem] border border-[color:rgba(38,23,12,0.08)] bg-white/80 px-4 py-3 shadow-[0_14px_32px_rgba(38,23,12,0.06)] backdrop-blur">
-          <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-[0.26em] text-[var(--color-on-surface-variant)]">
-              {roleMeta.badge}
-            </p>
-            <p className="truncate font-headline text-lg font-semibold tracking-tight text-[var(--primary)]">
-              {currentItem.label}
-            </p>
-          </div>
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger
-              aria-label="Open dashboard navigation"
-              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--primary)] text-white shadow-[0_14px_28px_rgba(38,23,12,0.16)] transition-transform duration-300 hover:-translate-y-0.5"
-            >
-              <Menu className="h-5 w-5" />
-            </SheetTrigger>
-            <SheetContent
-              side="left"
-              className="w-full max-w-[22rem] border-r-0 bg-[var(--color-surface)] p-0"
-            >
-              <SheetHeader className="sr-only">
-                <SheetTitle>{roleMeta.label}</SheetTitle>
-                <SheetDescription>Dashboard navigation menu</SheetDescription>
-              </SheetHeader>
-              <div className="h-full p-5">{shell}</div>
-            </SheetContent>
-          </Sheet>
-        </div>
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger
+            aria-label="Open dashboard navigation"
+            className="inline-flex h-12 w-12 items-center justify-center rounded-[1rem] border border-[color:rgba(15,23,42,0.06)] bg-white text-[var(--color-on-surface)] shadow-[0_12px_24px_rgba(15,23,42,0.06)]"
+          >
+            <Menu className="h-5 w-5" />
+          </SheetTrigger>
+          <SheetContent side="left" className="w-full max-w-[20rem] border-r-0 bg-[#f7f8f8] p-0">
+            <SheetHeader className="sr-only">
+              <SheetTitle>{roleMeta.label}</SheetTitle>
+              <SheetDescription>Dashboard navigation menu</SheetDescription>
+            </SheetHeader>
+            <div className="h-full p-4">
+              <div className="h-full rounded-[1.75rem] border border-[color:rgba(15,23,42,0.06)] bg-white px-5 py-6">
+                {shell}
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </>
   );
@@ -218,43 +200,37 @@ export function DashboardTopbar({ userRole }: SidebarProps) {
     ) ?? items[0];
 
   return (
-    <header className="sticky top-0 z-30 mb-6 rounded-[1.75rem] border border-[color:rgba(38,23,12,0.08)] bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(242,251,247,0.78))] px-4 py-4 shadow-[0_16px_36px_rgba(38,23,12,0.06)] backdrop-blur md:px-6">
+    <header className="border-b border-[color:rgba(15,23,42,0.06)] bg-white px-4 py-4 md:px-6 lg:px-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.24em] text-[var(--color-on-surface-variant)]">
-            <span>Dashboard</span>
-            <span className="inline-block h-1 w-1 rounded-full bg-[var(--primary)]" />
-            <span>{dashboardRoleMeta[userRole].badge}</span>
-          </div>
-          <h1 className="mt-2 font-headline text-2xl font-semibold tracking-tight text-[var(--color-on-surface)] md:text-[2rem]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--color-on-surface-variant)]">
+            {dashboardRoleMeta[userRole].badge}
+          </p>
+          <p className="truncate text-base font-semibold text-[var(--color-on-surface)]">
             {currentItem.label}
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--color-on-surface-variant)] md:text-base">
-            {currentItem.description}
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
-          <label className="flex min-w-0 items-center gap-2 rounded-full border border-[color:rgba(38,23,12,0.08)] bg-white/75 px-4 py-3 text-sm text-[var(--color-on-surface-variant)] shadow-[0_8px_18px_rgba(38,23,12,0.04)]">
-            <Search className="h-4 w-4 shrink-0 text-[var(--primary)]" />
-            <span className="truncate">Search courses, people, and reports</span>
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,18rem)_auto_auto]">
+          <label className="flex min-w-0 items-center gap-2 rounded-full border border-[color:rgba(15,23,42,0.06)] bg-[#f8f9f9] px-4 py-2.5 text-sm text-[var(--color-on-surface-variant)]">
+            <Search className="h-4 w-4 shrink-0 text-[#1f8f88]" />
+            <span className="truncate">Search anything</span>
           </label>
           <button
             type="button"
             aria-label="Notifications"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[color:rgba(38,23,12,0.08)] bg-white/75 px-4 text-sm font-medium text-[var(--color-on-surface)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(38,23,12,0.08)]"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[color:rgba(15,23,42,0.06)] bg-[#f8f9f9] text-[var(--color-on-surface)]"
           >
-            <Bell className="h-4 w-4 text-[var(--primary)]" />
-            <span className="hidden sm:inline">Alerts</span>
+            <Bell className="h-4 w-4" />
           </button>
-          <div className="inline-flex items-center gap-3 rounded-full border border-[color:rgba(38,23,12,0.08)] bg-[var(--primary)] px-4 py-2 text-white shadow-[0_18px_32px_rgba(38,23,12,0.14)]">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-sm font-semibold">
-              CM
+          <div className="inline-flex items-center gap-3 rounded-full border border-[color:rgba(15,23,42,0.06)] bg-white px-2 py-1.5 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(180deg,#d8e2ff_0%,#f3f6ff_100%)] text-xs font-semibold text-[#4057a7]">
+              AR
             </div>
-            <div className="hidden text-left sm:block">
-              <p className="text-sm font-semibold">Curated Workspace</p>
-              <p className="text-xs text-white/75">Focused and responsive</p>
-            </div>
+            <span className="text-sm font-medium text-[var(--color-on-surface)]">
+              Al Raihan
+            </span>
+            <ChevronDown className="h-4 w-4 text-[var(--color-on-surface-variant)]" />
           </div>
         </div>
       </div>
