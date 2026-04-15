@@ -1,34 +1,26 @@
 import apiClient from "@/lib/api-client";
-import type { User, ApiResponse, PaginatedResponse } from "@/types";
+import type { User, ApiResponse } from "@/types";
 
 export const userService = {
-  async getAll(
-    params?: Record<string, string | number>
-  ): Promise<PaginatedResponse<User>> {
-    const { data } = await apiClient.get<PaginatedResponse<User>>("/users", {
-      params,
-    });
+  async getMe(): Promise<ApiResponse<User>> {
+    const { data } = await apiClient.get<ApiResponse<User>>("/users/me");
     return data;
   },
 
-  async getById(id: string): Promise<ApiResponse<User>> {
-    const { data } = await apiClient.get<ApiResponse<User>>(`/users/${id}`);
-    return data;
-  },
-
-  async updateProfile(
-    id: string,
-    userData: Partial<User>
+  async updateMe(
+    userData: Partial<Pick<User, "name" | "avatar" | "phone">>
   ): Promise<ApiResponse<User>> {
-    const { data } = await apiClient.put<ApiResponse<User>>(
-      `/users/${id}`,
+    const { data } = await apiClient.patch<ApiResponse<User>>(
+      "/users/me",
       userData
     );
     return data;
   },
 
-  async deleteUser(id: string): Promise<ApiResponse<null>> {
-    const { data } = await apiClient.delete<ApiResponse<null>>(`/users/${id}`);
+  async getMyLearning(): Promise<ApiResponse<unknown>> {
+    const { data } = await apiClient.get<ApiResponse<unknown>>(
+      "/users/me/learning"
+    );
     return data;
   },
 };

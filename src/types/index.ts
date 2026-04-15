@@ -10,6 +10,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  phone?: string | null;
   avatar?: string;
   bio?: string;
   createdAt: string;
@@ -20,8 +21,6 @@ export interface User {
 
 export interface AuthState {
   user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -40,9 +39,6 @@ export interface RegisterCredentials {
 
 export interface AuthResponse {
   user: User;
-  accessToken: string;
-  refreshToken: string;
-  message: string;
 }
 
 // ---------- Course ----------

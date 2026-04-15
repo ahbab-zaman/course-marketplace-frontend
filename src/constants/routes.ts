@@ -10,7 +10,7 @@ export const ROUTES = {
   CONTACT: "/contact",
   COURSES: "/courses",
   COURSE_DETAIL: (slug: string) => `/course/${slug}` as const,
-  AUTH: "/auth",
+  AUTH: "/login",
 
   // Dashboard — User
   USER_DASHBOARD: "/user",

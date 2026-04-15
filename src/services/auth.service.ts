@@ -1,13 +1,36 @@
+import axios from "axios";
 import apiClient from "@/lib/api-client";
 import type { ApiResponse, AuthResponse, LoginCredentials, RegisterCredentials, User } from "@/types";
 
+const authApiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true,
+  timeout: 10000,
+});
+
+interface BetterAuthSessionResponse {
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+    role?: string;
+    emailVerified?: boolean;
+    image?: string | null;
+  };
+  session?: {
+    userId: string;
+  };
+}
+
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const { data } = await apiClient.post<ApiResponse<AuthResponse>>(
-      "/auth/login",
-      credentials
-    );
-    return data.data;
+    await authApiClient.post("/api/auth/sign-in/email", credentials);
+
+    const { data } = await apiClient.get<ApiResponse<User>>("/users/me");
+    return { user: data.data };
   },
 
   async register(credentials: RegisterCredentials): Promise<unknown> {
@@ -18,12 +41,39 @@ export const authService = {
     return data.data;
   },
 
+  async getSession(): Promise<BetterAuthSessionResponse | null> {
+    try {
+      const { data } = await authApiClient.get<BetterAuthSessionResponse | null>(
+        "/api/auth/get-session"
+      );
+      return data;
+    } catch {
+      return null;
+    }
+  },
+
   async getMe(): Promise<{ user: User }> {
-    const { data } = await apiClient.get<ApiResponse<{ user: User }>>("/auth/me");
-    return data.data;
+    const { data } = await apiClient.get<ApiResponse<User>>("/users/me");
+    return { user: data.data };
   },
 
   async logout(): Promise<void> {
-    await apiClient.post("/auth/logout");
+    await authApiClient.post("/api/auth/sign-out");
+  },
+
+  async verifyEmail(payload: { email: string; otp: string }): Promise<unknown> {
+    const { data } = await apiClient.post<ApiResponse<unknown>>(
+      "/auth/verify-email",
+      payload
+    );
+    return data.data;
+  },
+
+  async resendVerification(payload: { email: string }): Promise<unknown> {
+    const { data } = await apiClient.post<ApiResponse<unknown>>(
+      "/auth/resend-verification",
+      payload
+    );
+    return data.data;
   },
 };

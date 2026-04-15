@@ -2,34 +2,38 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
-import apiClient from "@/lib/api-client";
+import { authService } from "@/services/auth.service";
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { accessToken, setUser, setLoading, logout } = useAuthStore();
+  const { setUser, setLoading, logout } = useAuthStore();
 
   useEffect(() => {
-    // Validate token on mount and get user
     const validateAuth = async () => {
-      if (!accessToken) {
-        setLoading(false);
-        return;
-      }
+      setLoading(true);
 
       try {
-        const { data } = await apiClient.get("/auth/me");
-        setUser(data.data.user);
-        setLoading(false);
+        const session = await authService.getSession();
+
+        if (!session?.user) {
+          await logout();
+          return;
+        }
+
+        const { user } = await authService.getMe();
+        setUser(user);
       } catch {
-        logout();
+        await logout();
+      } finally {
+        setLoading(false);
       }
     };
 
     validateAuth();
-  }, [accessToken, setUser, setLoading, logout]);
+  }, [setUser, setLoading, logout]);
 
   return <>{children}</>;
 }

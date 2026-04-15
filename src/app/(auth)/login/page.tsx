@@ -8,21 +8,38 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+
+function getDashboardPath(role?: string) {
+  switch (role) {
+    case "ADMIN":
+      return "/admin";
+    case "INSTRUCTOR":
+      return "/instructor";
+    case "STUDENT":
+    default:
+      return "/user";
+  }
+}
+
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({ name: "", email: "", password: "" });
   const { login, register, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login(loginData.email, loginData.password);
       toast.success("Login successful!");
-      router.push("/");
+      const callbackUrl = searchParams.get("callbackUrl");
+      const currentUser = useAuthStore.getState().user;
+      router.push(callbackUrl || getDashboardPath(currentUser?.role));
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Login failed");
     }
