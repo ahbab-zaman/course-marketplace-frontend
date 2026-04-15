@@ -11,6 +11,7 @@ export const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
   timeout: 10000,
 });
 
@@ -38,12 +39,18 @@ apiClient.interceptors.response.use(
       try {
         const refreshToken = localStorage.getItem("refreshToken");
         if (refreshToken) {
-          const { data } = await apiClient.post("/auth/refresh", {
+          const { data } = await apiClient.post<{
+            data: {
+              accessToken: string;
+              refreshToken: string;
+            };
+          }>("/auth/refresh", {
             refreshToken,
           });
-          const { accessToken, refreshToken: newRefreshToken } = data;
+          const { accessToken, refreshToken: newRefreshToken } = data.data;
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", newRefreshToken);
+          originalRequest.headers = originalRequest.headers || {};
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return apiClient(originalRequest);
         }

@@ -21,7 +21,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       try {
         const { data } = await apiClient.get("/auth/me");
-        setUser(data.user);
+        setUser(data.data.user);
         setLoading(false);
       } catch {
         logout();

@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { User, UserRole } from "@/types";
+import type { ApiResponse, AuthResponse, User, UserRole } from "@/types";
 import apiClient from "@/lib/api-client";
 
 interface AuthStore {
@@ -49,11 +49,11 @@ export const useAuthStore = create<AuthStore>()(
       login: async (email, password) => {
         set({ isLoading: true });
         try {
-          const { data } = await apiClient.post("/auth/login", {
+          const { data } = await apiClient.post<ApiResponse<AuthResponse>>("/auth/login", {
             email,
             password,
           });
-          const { user, accessToken, refreshToken } = data;
+          const { user, accessToken, refreshToken } = data.data;
           get().setTokens(accessToken, refreshToken);
           set({ user, isAuthenticated: true, isLoading: false });
         } catch (error) {
@@ -99,10 +99,10 @@ export const useAuthStore = create<AuthStore>()(
       refresh: async () => {
         const { refreshToken } = get();
         if (!refreshToken) throw new Error("No refresh token");
-        const { data } = await apiClient.post("/auth/refresh", {
+        const { data } = await apiClient.post<ApiResponse<Pick<AuthResponse, "accessToken" | "refreshToken">>>("/auth/refresh", {
           refreshToken,
         });
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data;
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data.data;
         get().setTokens(newAccessToken, newRefreshToken);
       },
 
