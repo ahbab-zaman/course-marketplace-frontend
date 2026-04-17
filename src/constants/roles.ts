@@ -3,19 +3,20 @@
 // ============================================
 
 export enum Role {
-  USER = "user",
-  INSTRUCTOR = "instructor",
-  ADMIN = "admin",
+  STUDENT = "STUDENT",
+  INSTRUCTOR = "INSTRUCTOR",
+  ADMIN = "ADMIN",
 }
 
 export const ROLE_LABELS: Record<Role, string> = {
-  [Role.USER]: "Student",
+  [Role.STUDENT]: "Student",
   [Role.INSTRUCTOR]: "Instructor",
   [Role.ADMIN]: "Administrator",
 };
 
 export const ROLE_COLORS: Record<Role, string> = {
-  [Role.USER]: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  [Role.STUDENT]:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
   [Role.INSTRUCTOR]:
     "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
   [Role.ADMIN]:

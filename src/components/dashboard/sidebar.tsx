@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Bell,
   ChevronDown,
@@ -29,6 +29,7 @@ import {
 
 interface SidebarProps {
   userRole: DashboardRole;
+  onLogout?: () => Promise<void>;
 }
 
 function DashboardNav({
@@ -83,11 +84,17 @@ function DashboardNav({
   );
 }
 
-export function Sidebar({ userRole }: SidebarProps) {
+export function Sidebar({ userRole, onLogout }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const items = dashboardNavigation[userRole];
   const roleMeta = dashboardRoleMeta[userRole];
+
+  const handleLogout = async () => {
+    await onLogout?.();
+    router.push("/");
+  };
 
   const shell = (
     <div className="flex h-full flex-col">
@@ -147,6 +154,7 @@ export function Sidebar({ userRole }: SidebarProps) {
         </Link>
         <button
           type="button"
+          onClick={handleLogout}
           className="flex w-full items-center gap-3 rounded-[1rem] px-3 py-2.5 text-left text-sm text-[var(--color-on-surface-variant)] transition-colors hover:bg-[#f7f8f8] hover:text-[var(--color-on-surface)]"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f3f5f4] text-[#7a8481]">
@@ -191,13 +199,22 @@ export function Sidebar({ userRole }: SidebarProps) {
   );
 }
 
-export function DashboardTopbar({ userRole }: SidebarProps) {
+export function DashboardTopbar({
+  userRole,
+  userName = "Account",
+}: SidebarProps & { userName?: string }) {
   const pathname = usePathname();
   const items = dashboardNavigation[userRole];
   const currentItem =
     items.find(
       (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
     ) ?? items[0];
+  const initials = userName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <header className="border-b border-[color:rgba(15,23,42,0.06)] bg-white px-4 py-4 md:px-6 lg:px-8">
@@ -225,10 +242,10 @@ export function DashboardTopbar({ userRole }: SidebarProps) {
           </button>
           <div className="inline-flex items-center gap-3 rounded-full border border-[color:rgba(15,23,42,0.06)] bg-white px-2 py-1.5 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(180deg,#d8e2ff_0%,#f3f6ff_100%)] text-xs font-semibold text-[#4057a7]">
-              AR
+              {initials || "AC"}
             </div>
             <span className="text-sm font-medium text-[var(--color-on-surface)]">
-              Al Raihan
+              {userName}
             </span>
             <ChevronDown className="h-4 w-4 text-[var(--color-on-surface-variant)]" />
           </div>

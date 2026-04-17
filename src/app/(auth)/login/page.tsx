@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { authService } from "@/services/auth.service";
 
 function getDashboardPath(role?: string) {
   switch (role) {
@@ -189,7 +190,12 @@ export default function AuthPage() {
                   <span className="text-[10px] uppercase tracking-[0.2em] text-secondary font-semibold">Or</span>
                 </div>
 
-                <Button variant="outline" className="w-full py-6 rounded-xl border-[1.5px] border-outline-variant/30 hover:bg-surface-container text-primary flex items-center justify-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => authService.startGoogleSignIn()}
+                  className="w-full py-6 rounded-xl border-[1.5px] border-outline-variant/30 hover:bg-surface-container text-primary flex items-center justify-center gap-3"
+                >
                   <img
                     alt="Google"
                     className="w-5 h-5 group-hover:scale-110 transition-transform"
@@ -279,7 +285,12 @@ export default function AuthPage() {
                   <span className="text-[10px] uppercase tracking-[0.2em] text-secondary font-semibold">Or</span>
                 </div>
 
-                <Button variant="outline" className="w-full py-6 rounded-xl border-[1.5px] border-outline-variant/30 hover:bg-surface-container text-primary flex items-center justify-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => authService.startGoogleSignIn()}
+                  className="w-full py-6 rounded-xl border-[1.5px] border-outline-variant/30 hover:bg-surface-container text-primary flex items-center justify-center gap-3"
+                >
                   <img
                     alt="Google"
                     className="w-5 h-5 group-hover:scale-110 transition-transform"

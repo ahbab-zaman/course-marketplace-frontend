@@ -11,6 +11,7 @@ interface AuthStore {
 
   // Actions
   setUser: (user: User) => void;
+  clearAuth: () => void;
   login: (email: string, password: string) => Promise<void>;
   register: (
     name: string,
@@ -27,9 +28,15 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>()((set, get) => ({
   user: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
 
   setUser: (user) => set({ user, isAuthenticated: true }),
+  clearAuth: () =>
+    set({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+    }),
 
   login: async (email, password) => {
     set({ isLoading: true });

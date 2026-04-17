@@ -9,7 +9,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { setUser, setLoading, logout } = useAuthStore();
+  const { setUser, setLoading, clearAuth } = useAuthStore();
 
   useEffect(() => {
     const validateAuth = async () => {
@@ -19,21 +19,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const session = await authService.getSession();
 
         if (!session?.user) {
-          await logout();
+          clearAuth();
           return;
         }
 
         const { user } = await authService.getMe();
         setUser(user);
       } catch {
-        await logout();
+        clearAuth();
       } finally {
         setLoading(false);
       }
     };
 
     validateAuth();
-  }, [setUser, setLoading, logout]);
+  }, [setUser, setLoading, clearAuth]);
 
   return <>{children}</>;
 }

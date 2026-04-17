@@ -2,8 +2,10 @@ import axios from "axios";
 import apiClient from "@/lib/api-client";
 import type { ApiResponse, AuthResponse, LoginCredentials, RegisterCredentials, User } from "@/types";
 
+const AUTH_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 const authApiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  baseURL: AUTH_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -59,6 +61,14 @@ export const authService = {
 
   async logout(): Promise<void> {
     await authApiClient.post("/api/auth/sign-out");
+  },
+
+  startGoogleSignIn(): void {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.location.assign(`${AUTH_BASE_URL}/api/v1/auth/google/initiate`);
   },
 
   async verifyEmail(payload: { email: string; otp: string }): Promise<unknown> {
