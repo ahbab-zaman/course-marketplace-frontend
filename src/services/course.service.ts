@@ -1,5 +1,5 @@
 import apiClient from "@/lib/api-client";
-import type { Course, ApiResponse, PaginatedResponse, FilterState } from "@/types";
+import type { Course, ApiResponse, PaginatedResponse, FilterState, CourseCategory } from "@/types";
 
 export const courseService = {
   async getAll(
@@ -55,6 +55,22 @@ export const courseService = {
   async enroll(courseId: string): Promise<ApiResponse<null>> {
     const { data } = await apiClient.post<ApiResponse<null>>(
       `/courses/${courseId}/enroll`
+    );
+    return data;
+  },
+};
+
+export const categoryService = {
+  async getAll(): Promise<ApiResponse<CourseCategory[]>> {
+    const { data } = await apiClient.get<ApiResponse<CourseCategory[]>>(
+      "/categories"
+    );
+    return data;
+  },
+
+  async getBySlug(slug: string): Promise<ApiResponse<CourseCategory>> {
+    const { data } = await apiClient.get<ApiResponse<CourseCategory>>(
+      `/categories/${slug}`
     );
     return data;
   },

@@ -19,6 +19,18 @@ export interface User {
   isBlocked?: boolean;
 }
 
+// ---------- Category ----------
+export interface CourseCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  icon?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
@@ -100,6 +112,32 @@ export interface Review {
   rating: number;
   comment: string;
   createdAt: string;
+}
+
+// ---------- Enrollment ----------
+export type EnrollmentStatus = "ACTIVE" | "REFUNDED" | "REVOKED";
+
+export interface Enrollment {
+  id: string;
+  userId: string;
+  courseId: string;
+  status: EnrollmentStatus;
+  completionPercentage: number;
+  accessGrantedAt: string;
+  lastAccessedAt?: string | null;
+  lastLesson?: {
+    id: string;
+    title: string;
+    orderIndex: number;
+  } | null;
+  course: {
+    id: string;
+    title: string;
+    slug: string;
+    thumbnail: string | null;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ---------- Payment ----------

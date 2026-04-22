@@ -1,5 +1,5 @@
 import apiClient from "@/lib/api-client";
-import type { User, ApiResponse } from "@/types";
+import type { User, ApiResponse, Enrollment } from "@/types";
 
 export const userService = {
   async getMe(): Promise<ApiResponse<User>> {
@@ -17,8 +17,22 @@ export const userService = {
     return data;
   },
 
-  async getMyLearning(): Promise<ApiResponse<unknown>> {
-    const { data } = await apiClient.get<ApiResponse<unknown>>(
+  async getMyLearning(): Promise<ApiResponse<{
+    courses: Enrollment[];
+    totals: {
+      totalEnrollments: number;
+      activeEnrollments: number;
+      completedCourses: number;
+    };
+  }>> {
+    const { data } = await apiClient.get<ApiResponse<{
+      courses: Enrollment[];
+      totals: {
+        totalEnrollments: number;
+        activeEnrollments: number;
+        completedCourses: number;
+      };
+    }>>(
       "/users/me/learning"
     );
     return data;
