@@ -1,6 +1,6 @@
 "use client"
 
-import type * as React from "react"
+import * as React from "react"
 import { motion, type Variants } from "framer-motion"
 import { Home, Settings, Bell, User, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"

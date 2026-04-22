@@ -29,26 +29,27 @@ interface BetterAuthSessionResponse {
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    await authApiClient.post("/api/auth/sign-in/email", credentials);
+    const { data } = await authApiClient.post<ApiResponse<{ user: User; accessToken: string; refreshToken: string }>>(
+      "/api/v1/auth/login",
+      credentials
+    );
 
-    const { data } = await apiClient.get<ApiResponse<User>>("/users/me");
-    return { user: data.data };
+    return { user: data.data.user };
   },
 
   async register(credentials: RegisterCredentials): Promise<unknown> {
+    const { name, email, password } = credentials;
     const { data } = await apiClient.post<ApiResponse<unknown>>(
       "/auth/register",
-      credentials
+      { name, email, password }
     );
     return data.data;
   },
 
   async getSession(): Promise<BetterAuthSessionResponse | null> {
     try {
-      const { data } = await authApiClient.get<BetterAuthSessionResponse | null>(
-        "/api/auth/get-session"
-      );
-      return data;
+      const { data } = await apiClient.get<ApiResponse<User>>("/users/me");
+      return data.data ? { user: data.data } : null;
     } catch {
       return null;
     }
@@ -60,7 +61,7 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
-    await authApiClient.post("/api/auth/sign-out");
+    await apiClient.post("/auth/logout");
   },
 
   startGoogleSignIn(): void {
