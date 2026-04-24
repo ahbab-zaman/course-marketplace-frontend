@@ -19,7 +19,10 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
-      window.location.href = "/login";
+      const onLoginRoute = window.location.pathname.startsWith("/login");
+      if (!onLoginRoute) {
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }

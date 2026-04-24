@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { GSAPReveal } from "@/components/animations/GSAPReveal";
 import Link from "next/link";
 import { courseService, categoryService } from "@/services/course.service";
+import { ROUTES } from "@/constants/routes";
 import type { Course, CourseCategory, FilterState } from "@/types";
 
 export default function CoursesListingPage() {
@@ -21,14 +22,12 @@ export default function CoursesListingPage() {
     const apiParams: Record<string, string | number> = {};
     
     if (filters.search) apiParams.search = filters.search;
-    if (filters.category) apiParams.category = filters.category;
-    if (filters.level) apiParams.level = filters.level;
+    if (filters.category) apiParams.categoryId = filters.category;
     if (filters.priceRange) {
       apiParams.minPrice = filters.priceRange[0];
       apiParams.maxPrice = filters.priceRange[1];
     }
-    if (filters.rating) apiParams.minRating = filters.rating;
-    if (filters.sortBy) apiParams.sortBy = filters.sortBy;
+    if (filters.sortBy) apiParams.sort = filters.sortBy;
     if (filters.page) apiParams.page = filters.page;
     if (filters.limit) apiParams.limit = filters.limit;
     
@@ -40,7 +39,8 @@ export default function CoursesListingPage() {
     setError(null);
     try {
       const apiFilters: Partial<FilterState> = {
-        ...(selectedCategories.length > 0 && { category: selectedCategories.join(",") }),
+        // Backend accepts one category filter at a time (`categoryId` or `categorySlug`).
+        ...(selectedCategories.length > 0 && { category: selectedCategories[0] }),
         ...(selectedLevel && { level: selectedLevel as FilterState['level'] }),
         ...(priceRange < 499 && { priceRange: [0, priceRange] as [number, number] }),
         sortBy,
@@ -115,16 +115,7 @@ export default function CoursesListingPage() {
                         />
                         <span className="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">{category.name}</span>
                       </label>
-                    )) : ["Social Sciences", "Fine Arts", "Philosophy", "Digital Media"].map((category, idx) => (
-                      <label key={category} className="flex items-center gap-3 group cursor-pointer">
-                        <input
-                          defaultChecked={idx === 0}
-                          className="w-5 h-5 rounded border-outline-variant/40 text-primary-container focus:ring-primary-container/20 transition-colors"
-                          type="checkbox"
-                        />
-                        <span className="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">{category}</span>
-                      </label>
-                    ))}
+                    )) : null}
                   </div>
                 </section>
               </GSAPReveal>
@@ -278,7 +269,7 @@ export default function CoursesListingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
               {coursesData.map((course, idx) => (
                 <GSAPReveal key={course.id} animation="fadeUp" delay={0.2 + (idx * 0.1)}>
-                  <Link href={`/courses/${course.slug}`} className="block h-full">
+                  <Link href={ROUTES.COURSE_DETAIL(course.slug)} className="block h-full">
                     <article className="h-full group bg-surface-container-lowest rounded-[1.5rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col border border-outline-variant/10 hover:-translate-y-2">
                       <div className="relative h-56 overflow-hidden">
                         <div className="absolute inset-0 bg-primary/5 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
@@ -292,7 +283,7 @@ export default function CoursesListingPage() {
                       <div className="p-6 flex flex-col flex-1 relative bg-surface-container-lowest">
                         <div className="flex items-center gap-2 mb-4">
                           <span className="text-[10px] font-bold text-on-tertiary-container bg-tertiary-fixed-dim/20 px-2.5 py-1 rounded-md tracking-wider">
-                            {course.category}
+                            {typeof course.category === "string" ? course.category : (course.category?.name ?? "General")}
                           </span>
                           <div className="flex items-center gap-1.5 ml-auto">
                             <span className="material-symbols-outlined text-sm text-[#FFB703]" style={{ fontVariationSettings: "'FILL' 1" }}>

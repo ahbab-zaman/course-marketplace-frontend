@@ -67,7 +67,7 @@ export interface Course {
   discountPrice?: number;
   thumbnail: string;
   previewVideo?: string;
-  category: string;
+  category: string | { id: string; name: string; slug: string } | null;
   tags: string[];
   level: CourseLevel;
   status: CourseStatus;
@@ -180,6 +180,12 @@ export interface ApiResponse<T = unknown> {
   data: T;
   message: string;
   success: boolean;
+  meta?: {
+    page?: number;
+    limit?: number;
+    total?: number;
+    totalPages?: number;
+  };
 }
 
 export interface PaginatedResponse<T> extends ApiResponse<T[]> {
@@ -188,6 +194,15 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
     limit: number;
     total: number;
     totalPages: number;
+  };
+}
+
+export interface LearningSummary {
+  courses: Enrollment[];
+  totals: {
+    totalEnrollments: number;
+    activeEnrollments: number;
+    completedCourses: number;
   };
 }
 

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import {
   ActionTiles,
   DashboardGrid,
@@ -12,6 +15,13 @@ import {
   type MetricItem,
 } from "./content";
 import { ROUTES } from "@/constants/routes";
+import { courseService } from "@/services/course.service";
+import { userService } from "@/services/user.service";
+import { adminService } from "@/services/admin.service";
+import { progressService } from "@/services/progress.service";
+import { paymentService } from "@/services/payment.service";
+import { reviewService } from "@/services/review.service";
+import type { LearningSummary } from "@/types";
 
 const studentMetrics: MetricItem[] = [
   {
@@ -94,14 +104,83 @@ const adminMetrics: MetricItem[] = [
   },
 ];
 
+function useLearningSummary() {
+  const [learning, setLearning] = useState<LearningSummary | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const response = await userService.getMyLearning();
+        if (mounted) {
+          setLearning(response.data);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          setLearning(null);
+          setError(err instanceof Error ? err.message : "Failed to load learning summary");
+        }
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+    void load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return { learning, isLoading, error };
+}
+
 export function UserDashboardContent() {
+  const { learning, isLoading, error } = useLearningSummary();
+  const courseItems = useMemo(
+    () =>
+      (learning?.courses ?? []).slice(0, 3).map((item) => ({
+        label: item.course.title,
+        detail: item.lastLesson
+          ? `Next: ${item.lastLesson.title}`
+          : "No lesson activity yet",
+        value: `${Math.round(item.completionPercentage)}%`,
+      })),
+    [learning],
+  );
+
+  const dynamicStudentMetrics: MetricItem[] = learning
+    ? [
+        {
+          label: "Active enrollments",
+          value: String(learning.totals.activeEnrollments),
+          detail: "Courses you are actively progressing through.",
+          icon: "menu_book",
+        },
+        {
+          label: "Total enrollments",
+          value: String(learning.totals.totalEnrollments),
+          detail: "Your lifetime purchased/enrolled courses.",
+          icon: "school",
+        },
+        {
+          label: "Completed courses",
+          value: String(learning.totals.completedCourses),
+          detail: "Courses with 100% completion reached.",
+          icon: "workspace_premium",
+        },
+        studentMetrics[0],
+      ]
+    : studentMetrics;
+
   return (
     <div className="space-y-5">
       <OverviewBoard
         eyebrow="Student overview"
         title="Welcome back"
         description="Your learning dashboard is now spaced like a proper workspace: clear progress, focused actions, and a faster path back into the courses that matter this week."
-        metrics={studentMetrics}
+        metrics={dynamicStudentMetrics}
         chartTitle="Weekly study flow"
         chartValue="12.4h"
         chartDelta="+18%"
@@ -118,21 +197,11 @@ export function UserDashboardContent() {
         >
           <SummaryList
             title="Continue"
-            items={[
+            items={courseItems.length > 0 ? courseItems : [
               {
-                label: "Advanced React Patterns",
-                detail: "Next: compound components and state charts",
-                value: "78%",
-              },
-              {
-                label: "Design Systems in Practice",
-                detail: "Next: token strategy and component audits",
-                value: "54%",
-              },
-              {
-                label: "SQL for Product Teams",
-                detail: "Next: cohort retention and funnel analysis",
-                value: "39%",
+                label: "No active enrollments",
+                detail: "Start a course to populate your learning queue.",
+                value: "0%",
               },
             ]}
           />
@@ -173,26 +242,14 @@ export function UserDashboardContent() {
           className="xl:col-span-7"
         >
           <ProgressList
-            items={[
-              {
-                label: "Advanced React Patterns",
-                detail: "42 minutes left to reach the capstone lesson.",
-                value: "78%",
-                progress: 78,
-              },
-              {
-                label: "Design Systems in Practice",
-                detail: "Two assignments remain in the documentation block.",
-                value: "54%",
-                progress: 54,
-              },
-              {
-                label: "SQL for Product Teams",
-                detail: "Keep momentum by finishing the analysis lesson set.",
-                value: "39%",
-                progress: 39,
-              },
-            ]}
+            items={(learning?.courses ?? []).slice(0, 3).map((item) => ({
+              label: item.course.title,
+              detail: item.lastLesson
+                ? `Continue from lesson ${item.lastLesson.orderIndex}: ${item.lastLesson.title}`
+                : "Start your first lesson",
+              value: `${Math.round(item.completionPercentage)}%`,
+              progress: Math.round(item.completionPercentage),
+            }))}
           />
         </Panel>
         <Panel
@@ -223,11 +280,29 @@ export function UserDashboardContent() {
           />
         </Panel>
       </DashboardGrid>
+      {isLoading ? (
+        <Panel title="Learning sync" description="Refreshing your latest enrollment data.">
+          <p className="text-sm text-on-surface-variant">Loading learning summary...</p>
+        </Panel>
+      ) : null}
+      {error ? (
+        <Panel title="Learning sync issue" description="The dashboard is still usable while data sync recovers.">
+          <p className="text-sm text-on-surface-variant">{error}</p>
+        </Panel>
+      ) : null}
     </div>
   );
 }
 
 export function UserCoursesContent() {
+  const { learning, isLoading, error } = useLearningSummary();
+  const rows = (learning?.courses ?? []).map((item) => [
+    item.course.title,
+    item.status === "ACTIVE" ? "In progress" : item.status,
+    `${Math.round(item.completionPercentage)}%`,
+    item.lastLesson ? `Continue ${item.lastLesson.title}` : "Start first lesson",
+  ]);
+
   return (
     <div className="space-y-5">
       <DashboardHero
@@ -240,14 +315,11 @@ export function UserCoursesContent() {
         title="Course library"
         description="Current enrollments sorted by momentum and completion."
       >
+        {isLoading ? <p className="mb-3 text-sm text-on-surface-variant">Loading courses...</p> : null}
+        {error ? <p className="mb-3 text-sm text-on-surface-variant">{error}</p> : null}
         <TableCard
           columns={["Course", "Status", "Progress", "Next step"]}
-          rows={[
-            ["Advanced React Patterns", "In progress", "78%", "Finish Module 5"],
-            ["Design Systems in Practice", "In progress", "54%", "Audit token structure"],
-            ["SQL for Product Teams", "In progress", "39%", "Build funnel query"],
-            ["UI Writing Essentials", "Completed", "100%", "Download certificate"],
-          ]}
+          rows={rows.length > 0 ? rows : [["No enrollments yet", "-", "-", "Browse catalog"]]}
         />
       </Panel>
     </div>
@@ -255,6 +327,35 @@ export function UserCoursesContent() {
 }
 
 export function UserProgressContent() {
+  const { learning, error: learningError } = useLearningSummary();
+  const [lessonSignals, setLessonSignals] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await progressService.getMine();
+        const aggregate: Record<string, number> = {};
+        response.data.forEach((entry) => {
+          const key = entry.lesson.course.title;
+          aggregate[key] = (aggregate[key] ?? 0) + (entry.isCompleted ? 1 : 0);
+        });
+        setLessonSignals(aggregate);
+      } catch {
+        setLessonSignals({});
+      }
+    };
+    void load();
+  }, []);
+
+  const progressItems = (learning?.courses ?? []).map((item) => ({
+    label: item.course.title,
+    detail: item.lastLesson
+      ? `Last lesson: ${item.lastLesson.title} · Completed lessons: ${lessonSignals[item.course.title] ?? 0}`
+      : "No lesson activity recorded yet.",
+    value: `${Math.round(item.completionPercentage)}%`,
+    progress: Math.round(item.completionPercentage),
+  }));
+
   return (
     <div className="space-y-5">
       <MetricGrid
@@ -279,27 +380,20 @@ export function UserProgressContent() {
         title="Progress by course"
         description="The highest-value next moves are surfaced first."
       >
+        {learningError ? <p className="mb-3 text-sm text-on-surface-variant">{learningError}</p> : null}
         <ProgressList
-          items={[
-            {
-              label: "Advanced React Patterns",
-              detail: "Watch 42 minutes to reach the capstone.",
-              value: "78%",
-              progress: 78,
-            },
-            {
-              label: "Design Systems in Practice",
-              detail: "Two assignments remain in the documentation section.",
-              value: "54%",
-              progress: 54,
-            },
-            {
-              label: "SQL for Product Teams",
-              detail: "Keep momentum by finishing the analysis block.",
-              value: "39%",
-              progress: 39,
-            },
-          ]}
+          items={
+            progressItems.length > 0
+              ? progressItems
+              : [
+                  {
+                    label: "No progress yet",
+                    detail: "Enroll in a course to start tracking progress.",
+                    value: "0%",
+                    progress: 0,
+                  },
+                ]
+          }
         />
       </Panel>
     </div>
@@ -361,12 +455,27 @@ export function UserWishlistContent() {
 }
 
 export function UserOrdersContent() {
+  const [paymentsState, setPaymentsState] = useState("Payment history endpoint is not available yet.");
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        // Checkout endpoint exists; payment-history endpoint is intentionally missing for now.
+        await paymentService.createCheckout("preview-only");
+      } catch {
+        setPaymentsState("Live payment history is pending backend support. Checkout/verify endpoints are integrated.");
+      }
+    };
+    void load();
+  }, []);
+
   return (
     <div className="space-y-5">
       <Panel
         title="Orders and invoices"
         description="Purchases, billing records, and receipt retrieval in one place."
       >
+        <p className="mb-3 text-sm text-on-surface-variant">{paymentsState}</p>
         <TableCard
           columns={["Order", "Date", "Amount", "Status"]}
           rows={[
@@ -381,12 +490,63 @@ export function UserOrdersContent() {
 }
 
 export function UserSettingsContent() {
+  const [profileName, setProfileName] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+  const [saveState, setSaveState] = useState("");
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await userService.getMe();
+        setProfileName(response.data.name ?? "");
+        setProfilePhone(response.data.phone ?? "");
+      } catch (err) {
+        setSaveState(err instanceof Error ? err.message : "Failed to load profile");
+      }
+    };
+    void load();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      const response = await userService.updateMe({
+        name: profileName,
+        phone: profilePhone,
+      });
+      setSaveState(`Profile saved for ${response.data.name}`);
+    } catch (err) {
+      setSaveState(err instanceof Error ? err.message : "Failed to update profile");
+    }
+  };
+
   return (
     <div className="space-y-5">
       <Panel
         title="Account settings"
         description="A mobile-friendly overview of the controls learners look for most."
       >
+        <div className="mb-4 grid gap-3 md:grid-cols-2">
+          <input
+            value={profileName}
+            onChange={(e) => setProfileName(e.target.value)}
+            placeholder="Full name"
+            className="w-full rounded-lg border border-outline-variant/30 bg-white px-3 py-2"
+          />
+          <input
+            value={profilePhone}
+            onChange={(e) => setProfilePhone(e.target.value)}
+            placeholder="Phone number"
+            className="w-full rounded-lg border border-outline-variant/30 bg-white px-3 py-2"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={handleSave}
+          className="mb-4 rounded-lg bg-primary px-4 py-2 text-on-primary font-semibold"
+        >
+          Save profile
+        </button>
+        {saveState ? <p className="mb-4 text-sm text-on-surface-variant">{saveState}</p> : null}
         <QuickList
           items={[
             {
@@ -495,25 +655,140 @@ export function InstructorDashboardContent() {
 }
 
 export function InstructorCoursesContent() {
+  const [courses, setCourses] = useState<Array<{ id: string; title: string; status: string; enrollmentCount: number; price: number }>>([]);
+  const [actionState, setActionState] = useState("");
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await courseService.getMine({ limit: 20, sort: "newest" });
+        setCourses(
+          response.data.map((course) => ({
+            id: course.id,
+            title: course.title,
+            status: course.status,
+            enrollmentCount: course.enrollmentCount,
+            price: course.price,
+          })),
+        );
+      } catch {
+        setCourses([]);
+      }
+    };
+    void load();
+  }, []);
+
+  const handleSubmit = async (id: string) => {
+    try {
+      const response = await courseService.submitForReview(id);
+      setActionState(`Submitted "${response.data.title}" for review.`);
+    } catch (err) {
+      setActionState(err instanceof Error ? err.message : "Failed to submit course");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await courseService.delete(id);
+      setCourses((prev) => prev.filter((course) => course.id !== id));
+      setActionState("Course deleted.");
+    } catch (err) {
+      setActionState(err instanceof Error ? err.message : "Failed to delete course");
+    }
+  };
+
+  const handleQuickPriceUpdate = async (id: string, currentPrice: number) => {
+    try {
+      const response = await courseService.update(id, { price: currentPrice + 1 });
+      setCourses((prev) =>
+        prev.map((course) =>
+          course.id === id ? { ...course, price: response.data.price } : course,
+        ),
+      );
+      setActionState(`Updated "${response.data.title}" price to $${response.data.price.toFixed(2)}.`);
+    } catch (err) {
+      setActionState(err instanceof Error ? err.message : "Failed to update course");
+    }
+  };
+
   return (
     <Panel
       title="Course inventory"
       description="Published, draft, and scheduled courses shown in a dense but readable table."
     >
+      {courses.length > 0 ? (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {courses.slice(0, 3).map((course) => (
+            <div key={course.id} className="rounded-lg border border-outline-variant/20 px-3 py-2 text-xs">
+              <p className="font-semibold text-primary">{course.title}</p>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSubmit(course.id)}
+                  className="rounded bg-primary px-2 py-1 text-on-primary"
+                >
+                  Submit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickPriceUpdate(course.id, course.price)}
+                  className="rounded border border-outline-variant/30 px-2 py-1"
+                >
+                  +$1 Price
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(course.id)}
+                  className="rounded border border-outline-variant/30 px-2 py-1"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {actionState ? <p className="mb-3 text-sm text-on-surface-variant">{actionState}</p> : null}
       <TableCard
         columns={["Course", "Visibility", "Students", "Revenue"]}
-        rows={[
-          ["AI Workflow Systems", "Published", "412", "$6,420"],
-          ["Design Systems in Practice", "Published", "298", "$4,110"],
-          ["Advanced Product Strategy", "Scheduled", "Waitlist 93", "$0"],
-          ["Creative Direction Sprint", "Draft", "-", "-"],
-        ]}
+        rows={
+          courses.length > 0
+            ? courses.map((course) => [
+                course.title,
+                course.status,
+                String(course.enrollmentCount),
+                `$${(course.enrollmentCount * course.price).toFixed(2)}`,
+              ])
+            : [["No courses yet", "-", "-", "-"]]
+        }
       />
     </Panel>
   );
 }
 
 export function InstructorCreateCourseContent() {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("0");
+  const [status, setStatus] = useState<string>("");
+
+  const handleCreate = async () => {
+    try {
+      const created = await courseService.create({
+        title,
+        description,
+        shortDescription: description.slice(0, 120),
+        price: Number(price),
+      });
+      setStatus(`Created: ${created.data.title}`);
+      setTitle("");
+      setDescription("");
+      setPrice("0");
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Failed to create course");
+    }
+  };
+
   return (
     <div className="space-y-5">
       <DashboardHero
@@ -521,28 +796,41 @@ export function InstructorCreateCourseContent() {
         title="Launch-ready authoring steps."
         description="This page is structured around the actual publishing flow: concept, curriculum, assets, pricing, and launch checks. The layout is compressed for tablets without losing hierarchy."
       />
-      <ActionTiles
-        items={[
-          {
-            title: "Outline curriculum",
-            description: "Define modules, outcomes, and pacing before recording.",
-            href: ROUTES.INSTRUCTOR_CREATE_COURSE,
-            icon: "checklist",
-          },
-          {
-            title: "Upload media plan",
-            description: "Organize hero art, thumbnails, and lecture structure.",
-            href: ROUTES.INSTRUCTOR_CREATE_COURSE,
-            icon: "video_library",
-          },
-          {
-            title: "Set pricing and launch",
-            description: "Tune discounts, enrollment windows, and review notes.",
-            href: ROUTES.INSTRUCTOR_CREATE_COURSE,
-            icon: "sell",
-          },
-        ]}
-      />
+      <Panel
+        title="Create course"
+        description="Direct API-backed course creation for instructor flow."
+      >
+        <div className="space-y-4">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Course title"
+            className="w-full rounded-lg border border-outline-variant/30 bg-white px-3 py-2"
+          />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Course description (min 20 chars)"
+            className="w-full rounded-lg border border-outline-variant/30 bg-white px-3 py-2 min-h-28"
+          />
+          <input
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="Price"
+            type="number"
+            min={0}
+            className="w-full rounded-lg border border-outline-variant/30 bg-white px-3 py-2"
+          />
+          <button
+            type="button"
+            onClick={handleCreate}
+            className="rounded-lg bg-primary px-4 py-2 text-on-primary font-semibold"
+          >
+            Create course
+          </button>
+          {status ? <p className="text-sm text-on-surface-variant">{status}</p> : null}
+        </div>
+      </Panel>
     </div>
   );
 }
@@ -618,31 +906,40 @@ export function InstructorAnalyticsContent() {
 }
 
 export function InstructorReviewsContent() {
+  const [items, setItems] = useState<Array<{ title: string; detail: string; meta: string; tone?: "default" | "positive" | "warning" }>>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const mine = await courseService.getMine({ limit: 5, sort: "newest" });
+        const reviewLists = await Promise.all(
+          mine.data.slice(0, 3).map((course) => reviewService.getByCourse(course.id)),
+        );
+        const merged = reviewLists
+          .flatMap((response, index) =>
+            response.data.map((review) => ({
+              title: `"${review.comment ?? "No comment"}"`,
+              detail: `${mine.data[index]?.title ?? "Course"} · from ${review.user.name}`,
+              meta: `${review.rating}/5`,
+              tone: review.rating >= 4 ? "positive" as const : "warning" as const,
+            })),
+          )
+          .slice(0, 6);
+        setItems(merged);
+      } catch {
+        setItems([]);
+      }
+    };
+    void load();
+  }, []);
+
   return (
     <Panel
       title="Recent reviews"
       description="Feedback grouped for fast response and course refinement."
     >
       <QuickList
-        items={[
-          {
-            title: '"Excellent pacing and real-world examples."',
-            detail: "AI Workflow Systems · from Sara M.",
-            meta: "5 stars",
-            tone: "positive",
-          },
-          {
-            title: '"Module 3 could be tighter."',
-            detail: "Design Systems in Practice · from Kelvin R.",
-            meta: "Actionable",
-            tone: "warning",
-          },
-          {
-            title: '"Would love a worksheet for the pricing section."',
-            detail: "Advanced Product Strategy · from Nadia T.",
-            meta: "Feature request",
-          },
-        ]}
+        items={items.length > 0 ? items : [{ title: "No live reviews yet", detail: "Publish courses and collect learner feedback.", meta: "Empty" }]}
       />
     </Panel>
   );
@@ -773,6 +1070,26 @@ export function AdminDashboardContent() {
 }
 
 export function AdminUsersContent() {
+  const [rows, setRows] = useState<string[][]>([]);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await adminService.getUsers();
+        setRows(
+          response.data.map((user) => [
+            user.name,
+            user.role,
+            user.isBlocked ? "Blocked" : "Active",
+            "Recently active",
+          ]),
+        );
+      } catch {
+        setRows([]);
+      }
+    };
+    void load();
+  }, []);
+
   return (
     <Panel
       title="User directory"
@@ -780,37 +1097,70 @@ export function AdminUsersContent() {
     >
       <TableCard
         columns={["User", "Role", "Status", "Last active"]}
-        rows={[
-          ["Sara Milner", "Student", "Healthy", "2 hours ago"],
-          ["Kelvin Ruiz", "Instructor", "Needs payout review", "Today"],
-          ["Nadia Tran", "Admin", "Healthy", "Yesterday"],
-          ["Owen Price", "Student", "Flagged for support", "Apr 14"],
-        ]}
+        rows={rows.length > 0 ? rows : [["No users found", "-", "-", "-"]]}
       />
     </Panel>
   );
 }
 
 export function AdminCoursesContent() {
+  const [rows, setRows] = useState<string[][]>([]);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await adminService.getCourses();
+        setRows(
+          response.data.map((course) => [
+            course.title,
+            course.instructor.name,
+            course.status,
+            `${course.enrollmentCount} enrollments`,
+          ]),
+        );
+      } catch {
+        setRows([]);
+      }
+    };
+    void load();
+  }, []);
+
   return (
     <Panel
       title="Course moderation"
       description="Approval status, quality checks, and live catalog health."
     >
+      <p className="mb-3 text-sm text-on-surface-variant">
+        Moderation actions (approve/reject) are not exposed by backend yet; this page is read-only for now.
+      </p>
       <TableCard
         columns={["Course", "Instructor", "Status", "Issue"]}
-        rows={[
-          ["Advanced Product Strategy", "Nadia Tran", "Pending", "Thumbnail update"],
-          ["Creative Direction Sprint", "Amina Yusuf", "Pending", "Curriculum clarity"],
-          ["AI Workflow Systems", "Kelvin Ruiz", "Live", "Healthy"],
-          ["SQL for Product Teams", "Sara Milner", "Live", "Minor copy update"],
-        ]}
+        rows={rows.length > 0 ? rows : [["No courses found", "-", "-", "-"]]}
       />
     </Panel>
   );
 }
 
 export function AdminPaymentsContent() {
+  const [rows, setRows] = useState<string[][]>([]);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await adminService.getPayments();
+        setRows(
+          response.data.map((payment) => [
+            payment.id.slice(0, 8),
+            `${payment.user.name} -> ${payment.course.title}`,
+            `${payment.amount.toFixed(2)} ${payment.currency.toUpperCase()}`,
+            payment.status,
+          ]),
+        );
+      } catch {
+        setRows([]);
+      }
+    };
+    void load();
+  }, []);
+
   return (
     <Panel
       title="Payments and payouts"
@@ -818,53 +1168,88 @@ export function AdminPaymentsContent() {
     >
       <TableCard
         columns={["Reference", "Type", "Amount", "State"]}
-        rows={[
-          ["TX-89322", "Learner purchase", "$129.00", "Captured"],
-          ["PO-41021", "Instructor payout", "$2,763.00", "Scheduled"],
-          ["RF-18842", "Refund", "$49.00", "Processed"],
-          ["TX-88103", "Learner purchase", "$79.00", "Failed"],
-        ]}
+        rows={rows.length > 0 ? rows : [["No payments found", "-", "-", "-"]]}
       />
     </Panel>
   );
 }
 
 export function AdminReviewsContent() {
+  const [items, setItems] = useState<Array<{ title: string; detail: string; meta: string; tone?: "default" | "positive" | "warning" }>>([]);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await adminService.getReviews();
+        setItems(
+          response.data.map((review) => ({
+            title: `${review.course.title} review by ${review.user.name}`,
+            detail: review.comment ?? "No comment provided.",
+            meta: `${review.rating}/5`,
+            tone: review.rating >= 4 ? "positive" : "warning",
+          })),
+        );
+      } catch {
+        setItems([]);
+      }
+    };
+    void load();
+  }, []);
+
   return (
     <Panel
       title="Community reviews"
       description="Moderation-ready feedback and reported content."
     >
       <QuickList
-        items={[
-          {
-            title: "Reported review on AI Workflow Systems",
-            detail: "Flagged for personal attack language in the feedback body.",
-            meta: "Needs review",
-            tone: "warning",
-          },
-          {
-            title: "High praise trend on Product Discovery track",
-            detail: "Positive sentiment is strongest around practical templates.",
-            meta: "Signal",
-            tone: "positive",
-          },
-          {
-            title: "Refund-related complaint cluster",
-            detail: "Three comments mention checkout confusion on mobile.",
-            meta: "UX risk",
-          },
-        ]}
+        items={items.length > 0 ? items : [{ title: "No reviews", detail: "No review records returned.", meta: "Empty" }]}
       />
     </Panel>
   );
 }
 
 export function AdminAnalyticsContent() {
+  const [liveMetrics, setLiveMetrics] = useState<MetricItem[] | null>(null);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await adminService.getAnalytics();
+        setLiveMetrics([
+          {
+            label: "Platform members",
+            value: `${response.data.totalUsers}`,
+            detail: "Total users across all roles.",
+            icon: "group",
+          },
+          {
+            label: "Live courses",
+            value: `${response.data.totalCourses}`,
+            detail: "Courses currently active in the platform.",
+            icon: "school",
+          },
+          {
+            label: "Gross revenue",
+            value: `$${response.data.grossRevenue.toFixed(0)}`,
+            detail: "Aggregated payment volume.",
+            icon: "bar_chart",
+          },
+          {
+            label: "Total enrollments",
+            value: `${response.data.totalEnrollments}`,
+            detail: "Enrollment records created so far.",
+            icon: "monitoring",
+          },
+        ]);
+      } catch {
+        setLiveMetrics(null);
+      }
+    };
+    void load();
+  }, []);
+
   return (
     <div className="space-y-5">
       <MetricGrid
-        items={[
+        items={liveMetrics ?? [
           adminMetrics[0],
           adminMetrics[1],
           {
