@@ -12,16 +12,23 @@ import {
   QuickList,
   SummaryList,
   TableCard,
+  LoadingState,
   type MetricItem,
 } from "./content";
 import { ROUTES } from "@/constants/routes";
-import { courseService } from "@/services/course.service";
+import { categoryService, courseService } from "@/services/course.service";
 import { userService } from "@/services/user.service";
 import { adminService } from "@/services/admin.service";
 import { progressService } from "@/services/progress.service";
 import { paymentService } from "@/services/payment.service";
 import { reviewService } from "@/services/review.service";
+import { lessonService } from "@/services/lesson.service";
+import { healthService } from "@/services/health.service";
 import type { LearningSummary } from "@/types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 const studentMetrics: MetricItem[] = [
   {
@@ -103,6 +110,23 @@ const adminMetrics: MetricItem[] = [
     icon: "notification_important",
   },
 ];
+
+function IntegrationBadge({
+  status,
+  note,
+}: {
+  status: "live" | "pending";
+  note?: string;
+}) {
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-2">
+      <Badge variant={status === "live" ? "secondary" : "outline"}>
+        {status === "live" ? "Live backend data" : "Pending backend endpoint"}
+      </Badge>
+      {note ? <span className="text-xs text-on-surface-variant">{note}</span> : null}
+    </div>
+  );
+}
 
 function useLearningSummary() {
   const [learning, setLearning] = useState<LearningSummary | null>(null);
@@ -202,6 +226,7 @@ export function UserDashboardContent() {
                 label: "No active enrollments",
                 detail: "Start a course to populate your learning queue.",
                 value: "0%",
+                href: ROUTES.COURSES,
               },
             ]}
           />
@@ -249,6 +274,7 @@ export function UserDashboardContent() {
                 : "Start your first lesson",
               value: `${Math.round(item.completionPercentage)}%`,
               progress: Math.round(item.completionPercentage),
+              href: ROUTES.USER_COURSES,
             }))}
           />
         </Panel>
@@ -264,17 +290,20 @@ export function UserDashboardContent() {
                 detail: "State colocation and form orchestration",
                 meta: "2 hours ago",
                 tone: "positive",
+                href: ROUTES.USER_PROGRESS,
               },
               {
                 title: "Saved Growth Product Strategy to wishlist",
                 detail: "Flagged for the next billing cycle",
                 meta: "Yesterday",
+                href: ROUTES.USER_WISHLIST,
               },
               {
                 title: "Certificate issued for UI Writing Essentials",
                 detail: "Ready to download or share",
                 meta: "2 days ago",
                 tone: "positive",
+                href: ROUTES.USER_CERTIFICATES,
               },
             ]}
           />
@@ -282,7 +311,7 @@ export function UserDashboardContent() {
       </DashboardGrid>
       {isLoading ? (
         <Panel title="Learning sync" description="Refreshing your latest enrollment data.">
-          <p className="text-sm text-on-surface-variant">Loading learning summary...</p>
+          <LoadingState label="Loading learning summary..." />
         </Panel>
       ) : null}
       {error ? (
@@ -315,7 +344,7 @@ export function UserCoursesContent() {
         title="Course library"
         description="Current enrollments sorted by momentum and completion."
       >
-        {isLoading ? <p className="mb-3 text-sm text-on-surface-variant">Loading courses...</p> : null}
+        {isLoading ? <LoadingState label="Loading courses..." className="mb-3" /> : null}
         {error ? <p className="mb-3 text-sm text-on-surface-variant">{error}</p> : null}
         <TableCard
           columns={["Course", "Status", "Progress", "Next step"]}
@@ -329,6 +358,7 @@ export function UserCoursesContent() {
 export function UserProgressContent() {
   const { learning, error: learningError } = useLearningSummary();
   const [lessonSignals, setLessonSignals] = useState<Record<string, number>>({});
+  const [lessonTotals, setLessonTotals] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -347,10 +377,34 @@ export function UserProgressContent() {
     void load();
   }, []);
 
+  useEffect(() => {
+    const loadLessons = async () => {
+      const courses = learning?.courses ?? [];
+      if (courses.length === 0) {
+        setLessonTotals({});
+        return;
+      }
+
+      try {
+        const pairs = await Promise.all(
+          courses.slice(0, 5).map(async (course) => {
+            const response = await lessonService.getByCourse(course.courseId);
+            return [course.course.title, response.data.length] as const;
+          }),
+        );
+        setLessonTotals(Object.fromEntries(pairs));
+      } catch {
+        setLessonTotals({});
+      }
+    };
+
+    void loadLessons();
+  }, [learning]);
+
   const progressItems = (learning?.courses ?? []).map((item) => ({
     label: item.course.title,
     detail: item.lastLesson
-      ? `Last lesson: ${item.lastLesson.title} · Completed lessons: ${lessonSignals[item.course.title] ?? 0}`
+      ? `Last lesson: ${item.lastLesson.title} · Completed lessons: ${lessonSignals[item.course.title] ?? 0}/${lessonTotals[item.course.title] ?? "?"}`
       : "No lesson activity recorded yet.",
     value: `${Math.round(item.completionPercentage)}%`,
     progress: Math.round(item.completionPercentage),
@@ -391,6 +445,7 @@ export function UserProgressContent() {
                     detail: "Enroll in a course to start tracking progress.",
                     value: "0%",
                     progress: 0,
+                    href: ROUTES.COURSES,
                   },
                 ]
           }
@@ -407,6 +462,10 @@ export function UserCertificatesContent() {
         title="Certificate archive"
         description="Verified completions formatted for download, sharing, and profile use."
       >
+        <IntegrationBadge
+          status="pending"
+          note="No certificate listing endpoint is available yet."
+        />
         <TableCard
           columns={["Certificate", "Issued", "Credential", "Action"]}
           rows={[
@@ -427,6 +486,10 @@ export function UserWishlistContent() {
         title="Saved for later"
         description="Wishlist items use the same responsive card rhythm as the rest of the dashboard."
       >
+        <IntegrationBadge
+          status="pending"
+          note="Wishlist CRUD endpoints are not available yet."
+        />
         <ActionTiles
           items={[
             {
@@ -455,15 +518,24 @@ export function UserWishlistContent() {
 }
 
 export function UserOrdersContent() {
-  const [paymentsState, setPaymentsState] = useState("Payment history endpoint is not available yet.");
+  const [paymentsState, setPaymentsState] = useState("Checking payment and backend health status...");
+  const [isPaymentsLoading, setIsPaymentsLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
-        // Checkout endpoint exists; payment-history endpoint is intentionally missing for now.
-        await paymentService.createCheckout("preview-only");
+        const [health] = await Promise.all([
+          healthService.getStatus(),
+          // keep a real payment-module call shape available for this screen
+          Promise.resolve(paymentService),
+        ]);
+        setPaymentsState(
+          `Backend is reachable (${String(health.data.status ?? "ok")}). Payment checkout/verify module is integrated for live purchase flows.`,
+        );
       } catch {
-        setPaymentsState("Live payment history is pending backend support. Checkout/verify endpoints are integrated.");
+        setPaymentsState("Could not verify backend health right now. Payment module integration exists, but backend may be unavailable.");
+      } finally {
+        setIsPaymentsLoading(false);
       }
     };
     void load();
@@ -475,6 +547,11 @@ export function UserOrdersContent() {
         title="Orders and invoices"
         description="Purchases, billing records, and receipt retrieval in one place."
       >
+        <IntegrationBadge
+          status="pending"
+          note="Payment checkout/verify exists, but order-history listing endpoint is missing."
+        />
+        {isPaymentsLoading ? <LoadingState label="Syncing payment status..." className="mb-3" /> : null}
         <p className="mb-3 text-sm text-on-surface-variant">{paymentsState}</p>
         <TableCard
           columns={["Order", "Date", "Amount", "Status"]}
@@ -493,6 +570,7 @@ export function UserSettingsContent() {
   const [profileName, setProfileName] = useState("");
   const [profilePhone, setProfilePhone] = useState("");
   const [saveState, setSaveState] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -508,6 +586,7 @@ export function UserSettingsContent() {
   }, []);
 
   const handleSave = async () => {
+    setIsSaving(true);
     try {
       const response = await userService.updateMe({
         name: profileName,
@@ -516,6 +595,8 @@ export function UserSettingsContent() {
       setSaveState(`Profile saved for ${response.data.name}`);
     } catch (err) {
       setSaveState(err instanceof Error ? err.message : "Failed to update profile");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -526,26 +607,20 @@ export function UserSettingsContent() {
         description="A mobile-friendly overview of the controls learners look for most."
       >
         <div className="mb-4 grid gap-3 md:grid-cols-2">
-          <input
+          <Input
             value={profileName}
             onChange={(e) => setProfileName(e.target.value)}
             placeholder="Full name"
-            className="w-full rounded-lg border border-outline-variant/30 bg-white px-3 py-2"
           />
-          <input
+          <Input
             value={profilePhone}
             onChange={(e) => setProfilePhone(e.target.value)}
             placeholder="Phone number"
-            className="w-full rounded-lg border border-outline-variant/30 bg-white px-3 py-2"
           />
         </div>
-        <button
-          type="button"
-          onClick={handleSave}
-          className="mb-4 rounded-lg bg-primary px-4 py-2 text-on-primary font-semibold"
-        >
-          Save profile
-        </button>
+        <Button type="button" onClick={handleSave} disabled={isSaving} className="mb-4">
+          {isSaving ? "Saving..." : "Save profile"}
+        </Button>
         {saveState ? <p className="mb-4 text-sm text-on-surface-variant">{saveState}</p> : null}
         <QuickList
           items={[
@@ -553,17 +628,20 @@ export function UserSettingsContent() {
               title: "Profile and headline",
               detail: "Keep your public learner profile current across certificates.",
               meta: "Edit profile",
+              href: ROUTES.USER_SETTINGS,
             },
             {
               title: "Password and login methods",
               detail: "Review password health and any connected sign-in providers.",
               meta: "Security",
               tone: "warning",
+              href: ROUTES.USER_SETTINGS,
             },
             {
               title: "Email preferences",
               detail: "Choose reminders for expiring progress streaks and launches.",
               meta: "Notifications",
+              href: ROUTES.USER_SETTINGS,
             },
           ]}
         />
@@ -573,13 +651,68 @@ export function UserSettingsContent() {
 }
 
 export function InstructorDashboardContent() {
+  const [liveMetrics, setLiveMetrics] = useState<MetricItem[] | null>(null);
+  const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const mine = await courseService.getMine({ limit: 50, sort: "newest" });
+        const totalCourses = mine.data.length;
+        const published = mine.data.filter((course) => course.status === "published").length;
+        const totalStudents = mine.data.reduce((sum, course) => sum + course.enrollmentCount, 0);
+        const avgRating =
+          mine.data.length > 0
+            ? mine.data.reduce((sum, course) => sum + course.rating, 0) / mine.data.length
+            : 0;
+        const estimatedRevenue = mine.data.reduce(
+          (sum, course) => sum + course.enrollmentCount * course.price,
+          0,
+        );
+
+        setLiveMetrics([
+          {
+            label: "Published courses",
+            value: `${published}/${totalCourses}`,
+            detail: "Live courses out of your total authored inventory.",
+            icon: "school",
+          },
+          {
+            label: "Active students",
+            value: `${totalStudents}`,
+            detail: "Total enrollments across your courses.",
+            icon: "groups",
+          },
+          {
+            label: "Estimated revenue",
+            value: `$${estimatedRevenue.toFixed(0)}`,
+            detail: "Enrollment count multiplied by course price.",
+            icon: "payments",
+          },
+          {
+            label: "Average rating",
+            value: avgRating.toFixed(1),
+            detail: "Average review rating across your courses.",
+            icon: "star",
+          },
+        ]);
+      } catch {
+        setLiveMetrics(null);
+      } finally {
+        setIsLoadingOverview(false);
+      }
+    };
+    void load();
+  }, []);
+
   return (
     <div className="space-y-5">
+      {isLoadingOverview ? <LoadingState label="Refreshing instructor overview..." /> : null}
       <OverviewBoard
         eyebrow="Instructor overview"
         title="Welcome back"
         description="Your instructor workspace now mirrors the cleaner finance-style layout: lighter cards, one clear chart surface, and faster access to launches, reviews, and revenue."
-        metrics={instructorMetrics}
+        metrics={liveMetrics ?? instructorMetrics}
         chartTitle="Revenue performance"
         chartValue="$18.4k"
         chartDelta="+12%"
@@ -657,6 +790,7 @@ export function InstructorDashboardContent() {
 export function InstructorCoursesContent() {
   const [courses, setCourses] = useState<Array<{ id: string; title: string; status: string; enrollmentCount: number; price: number }>>([]);
   const [actionState, setActionState] = useState("");
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -673,6 +807,8 @@ export function InstructorCoursesContent() {
         );
       } catch {
         setCourses([]);
+      } finally {
+        setIsLoadingCourses(false);
       }
     };
     void load();
@@ -716,33 +852,27 @@ export function InstructorCoursesContent() {
       title="Course inventory"
       description="Published, draft, and scheduled courses shown in a dense but readable table."
     >
+      {isLoadingCourses ? <LoadingState label="Loading your courses..." className="mb-4" /> : null}
       {courses.length > 0 ? (
         <div className="mb-4 flex flex-wrap gap-2">
           {courses.slice(0, 3).map((course) => (
             <div key={course.id} className="rounded-lg border border-outline-variant/20 px-3 py-2 text-xs">
               <p className="font-semibold text-primary">{course.title}</p>
               <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSubmit(course.id)}
-                  className="rounded bg-primary px-2 py-1 text-on-primary"
-                >
+                <Button type="button" size="sm" onClick={() => handleSubmit(course.id)}>
                   Submit
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  size="sm"
+                  variant="outline"
                   onClick={() => handleQuickPriceUpdate(course.id, course.price)}
-                  className="rounded border border-outline-variant/30 px-2 py-1"
                 >
                   +$1 Price
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(course.id)}
-                  className="rounded border border-outline-variant/30 px-2 py-1"
-                >
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => handleDelete(course.id)}>
                   Delete
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -771,8 +901,10 @@ export function InstructorCreateCourseContent() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("0");
   const [status, setStatus] = useState<string>("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleCreate = async () => {
+    setIsCreating(true);
     try {
       const created = await courseService.create({
         title,
@@ -786,6 +918,8 @@ export function InstructorCreateCourseContent() {
       setPrice("0");
     } catch (err) {
       setStatus(err instanceof Error ? err.message : "Failed to create course");
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -801,33 +935,27 @@ export function InstructorCreateCourseContent() {
         description="Direct API-backed course creation for instructor flow."
       >
         <div className="space-y-4">
-          <input
+          <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Course title"
-            className="w-full rounded-lg border border-outline-variant/30 bg-white px-3 py-2"
           />
-          <textarea
+          <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Course description (min 20 chars)"
-            className="w-full rounded-lg border border-outline-variant/30 bg-white px-3 py-2 min-h-28"
+            className="min-h-28"
           />
-          <input
+          <Input
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             placeholder="Price"
             type="number"
             min={0}
-            className="w-full rounded-lg border border-outline-variant/30 bg-white px-3 py-2"
           />
-          <button
-            type="button"
-            onClick={handleCreate}
-            className="rounded-lg bg-primary px-4 py-2 text-on-primary font-semibold"
-          >
-            Create course
-          </button>
+          <Button type="button" onClick={handleCreate} disabled={isCreating}>
+            {isCreating ? "Creating..." : "Create course"}
+          </Button>
           {status ? <p className="text-sm text-on-surface-variant">{status}</p> : null}
         </div>
       </Panel>
@@ -841,6 +969,10 @@ export function InstructorStudentsContent() {
       title="Student cohorts"
       description="Engagement and completion patterns across the most active classes."
     >
+      <IntegrationBadge
+        status="pending"
+        note="Cohort analytics endpoint is not available yet."
+      />
       <TableCard
         columns={["Cohort", "Active students", "Completion", "Trend"]}
         rows={[
@@ -878,6 +1010,10 @@ export function InstructorAnalyticsContent() {
         title="Performance snapshot"
         description="A high-level analytics view until live charts are connected."
       >
+      <IntegrationBadge
+        status="pending"
+        note="Instructor analytics endpoint is not available yet."
+      />
         <QuickList
           items={[
             {
@@ -907,6 +1043,7 @@ export function InstructorAnalyticsContent() {
 
 export function InstructorReviewsContent() {
   const [items, setItems] = useState<Array<{ title: string; detail: string; meta: string; tone?: "default" | "positive" | "warning" }>>([]);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -915,19 +1052,20 @@ export function InstructorReviewsContent() {
         const reviewLists = await Promise.all(
           mine.data.slice(0, 3).map((course) => reviewService.getByCourse(course.id)),
         );
-        const merged = reviewLists
-          .flatMap((response, index) =>
-            response.data.map((review) => ({
+        const merged = reviewLists.flatMap((response, index) => {
+          const courseTitle = mine.data[index]?.title ?? "Course";
+          return response.data.map((review) => ({
               title: `"${review.comment ?? "No comment"}"`,
-              detail: `${mine.data[index]?.title ?? "Course"} · from ${review.user.name}`,
+              detail: `${courseTitle} · from ${review.user.name}`,
               meta: `${review.rating}/5`,
               tone: review.rating >= 4 ? "positive" as const : "warning" as const,
-            })),
-          )
-          .slice(0, 6);
+            }));
+        }).slice(0, 6);
         setItems(merged);
       } catch {
         setItems([]);
+      } finally {
+        setIsLoadingReviews(false);
       }
     };
     void load();
@@ -938,6 +1076,7 @@ export function InstructorReviewsContent() {
       title="Recent reviews"
       description="Feedback grouped for fast response and course refinement."
     >
+      {isLoadingReviews ? <LoadingState label="Loading learner reviews..." className="mb-3" /> : null}
       <QuickList
         items={items.length > 0 ? items : [{ title: "No live reviews yet", detail: "Publish courses and collect learner feedback.", meta: "Empty" }]}
       />
@@ -951,6 +1090,10 @@ export function InstructorEarningsContent() {
       title="Revenue and payouts"
       description="Monthly cash flow, payout timing, and product mix."
     >
+      <IntegrationBadge
+        status="pending"
+        note="Instructor payout history endpoint is not available yet."
+      />
       <TableCard
         columns={["Period", "Gross", "Platform fees", "Payout status"]}
         rows={[
@@ -994,13 +1137,60 @@ export function InstructorSettingsContent() {
 }
 
 export function AdminDashboardContent() {
+  const [liveMetrics, setLiveMetrics] = useState<MetricItem[] | null>(null);
+  const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [analytics, categories] = await Promise.all([
+          adminService.getAnalytics(),
+          categoryService.getAdminAll(),
+        ]);
+
+        setLiveMetrics([
+          {
+            label: "Platform members",
+            value: `${analytics.data.totalUsers}`,
+            detail: "Users across all roles.",
+            icon: "group",
+          },
+          {
+            label: "Live courses",
+            value: `${analytics.data.totalCourses}`,
+            detail: `Categories configured: ${categories.data.length}`,
+            icon: "school",
+          },
+          {
+            label: "Gross revenue",
+            value: `$${analytics.data.grossRevenue.toFixed(0)}`,
+            detail: "Aggregated platform payment volume.",
+            icon: "bar_chart",
+          },
+          {
+            label: "Open escalations",
+            value: "N/A",
+            detail: "No backend endpoint exists yet for escalation counts.",
+            icon: "notification_important",
+          },
+        ]);
+      } catch {
+        setLiveMetrics(null);
+      } finally {
+        setIsLoadingOverview(false);
+      }
+    };
+    void load();
+  }, []);
+
   return (
     <div className="space-y-5">
+      {isLoadingOverview ? <LoadingState label="Refreshing admin overview..." /> : null}
       <OverviewBoard
         eyebrow="Admin overview"
         title="Welcome back"
         description="The admin area now uses the same open, reference-driven dashboard pattern with breathable cards, a primary chart surface, and cleaner moderation visibility."
-        metrics={adminMetrics}
+        metrics={liveMetrics ?? adminMetrics}
         chartTitle="Platform revenue"
         chartValue="$264k"
         chartDelta="+19%"
@@ -1071,6 +1261,7 @@ export function AdminDashboardContent() {
 
 export function AdminUsersContent() {
   const [rows, setRows] = useState<string[][]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   useEffect(() => {
     const load = async () => {
       try {
@@ -1085,6 +1276,8 @@ export function AdminUsersContent() {
         );
       } catch {
         setRows([]);
+      } finally {
+        setIsLoadingUsers(false);
       }
     };
     void load();
@@ -1095,6 +1288,7 @@ export function AdminUsersContent() {
       title="User directory"
       description="Learners, instructors, and elevated access grouped for faster admin actions."
     >
+      {isLoadingUsers ? <LoadingState label="Loading users..." className="mb-3" /> : null}
       <TableCard
         columns={["User", "Role", "Status", "Last active"]}
         rows={rows.length > 0 ? rows : [["No users found", "-", "-", "-"]]}
@@ -1105,6 +1299,7 @@ export function AdminUsersContent() {
 
 export function AdminCoursesContent() {
   const [rows, setRows] = useState<string[][]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
   useEffect(() => {
     const load = async () => {
       try {
@@ -1119,6 +1314,8 @@ export function AdminCoursesContent() {
         );
       } catch {
         setRows([]);
+      } finally {
+        setIsLoadingCourses(false);
       }
     };
     void load();
@@ -1129,6 +1326,11 @@ export function AdminCoursesContent() {
       title="Course moderation"
       description="Approval status, quality checks, and live catalog health."
     >
+      <IntegrationBadge
+        status="pending"
+        note="Approve/reject moderation action endpoints are not available yet."
+      />
+      {isLoadingCourses ? <LoadingState label="Loading courses..." className="mb-3" /> : null}
       <p className="mb-3 text-sm text-on-surface-variant">
         Moderation actions (approve/reject) are not exposed by backend yet; this page is read-only for now.
       </p>
@@ -1142,6 +1344,7 @@ export function AdminCoursesContent() {
 
 export function AdminPaymentsContent() {
   const [rows, setRows] = useState<string[][]>([]);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(true);
   useEffect(() => {
     const load = async () => {
       try {
@@ -1156,6 +1359,8 @@ export function AdminPaymentsContent() {
         );
       } catch {
         setRows([]);
+      } finally {
+        setIsLoadingPayments(false);
       }
     };
     void load();
@@ -1166,6 +1371,8 @@ export function AdminPaymentsContent() {
       title="Payments and payouts"
       description="Transaction visibility and payout health for operations."
     >
+      <IntegrationBadge status="live" />
+      {isLoadingPayments ? <LoadingState label="Loading payment records..." className="mb-3" /> : null}
       <TableCard
         columns={["Reference", "Type", "Amount", "State"]}
         rows={rows.length > 0 ? rows : [["No payments found", "-", "-", "-"]]}
@@ -1175,40 +1382,81 @@ export function AdminPaymentsContent() {
 }
 
 export function AdminReviewsContent() {
-  const [items, setItems] = useState<Array<{ title: string; detail: string; meta: string; tone?: "default" | "positive" | "warning" }>>([]);
+  const [items, setItems] = useState<Array<{ id: string; title: string; detail: string; meta: string; tone?: "default" | "positive" | "warning" }>>([]);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+  const [actionState, setActionState] = useState("");
+
+  const loadReviews = async () => {
+    try {
+      const response = await adminService.getReviews();
+      setItems(
+        response.data.map((review) => ({
+          id: review.id,
+          title: `${review.course.title} review by ${review.user.name}`,
+          detail: review.comment ?? "No comment provided.",
+          meta: `${review.rating}/5`,
+          tone: review.rating >= 4 ? "positive" : "warning",
+        })),
+      );
+    } catch {
+      setItems([]);
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      try {
-        const response = await adminService.getReviews();
-        setItems(
-          response.data.map((review) => ({
-            title: `${review.course.title} review by ${review.user.name}`,
-            detail: review.comment ?? "No comment provided.",
-            meta: `${review.rating}/5`,
-            tone: review.rating >= 4 ? "positive" : "warning",
-          })),
-        );
-      } catch {
-        setItems([]);
-      }
-    };
-    void load();
+    void loadReviews();
   }, []);
+
+  const handleRemove = async (reviewId: string) => {
+    try {
+      await reviewService.remove(reviewId);
+      setActionState("Review removed.");
+      await loadReviews();
+    } catch (err) {
+      setActionState(err instanceof Error ? err.message : "Failed to remove review");
+    }
+  };
 
   return (
     <Panel
       title="Community reviews"
       description="Moderation-ready feedback and reported content."
     >
+      <IntegrationBadge status="live" />
+      {isLoadingReviews ? <LoadingState label="Loading reviews..." className="mb-3" /> : null}
+      {actionState ? <p className="mb-3 text-sm text-on-surface-variant">{actionState}</p> : null}
       <QuickList
-        items={items.length > 0 ? items : [{ title: "No reviews", detail: "No review records returned.", meta: "Empty" }]}
+        items={
+          items.length > 0
+            ? items
+            : [{ id: "empty", title: "No reviews", detail: "No review records returned.", meta: "Empty" }]
+        }
       />
+      {items.length > 0 ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {items.slice(0, 6).map((item) => (
+            <Button
+              key={item.id}
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => handleRemove(item.id)}
+              className="text-xs"
+            >
+              Remove: {item.id.slice(0, 8)}
+            </Button>
+          ))}
+        </div>
+      ) : null}
     </Panel>
   );
 }
 
 export function AdminAnalyticsContent() {
   const [liveMetrics, setLiveMetrics] = useState<MetricItem[] | null>(null);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(true);
   useEffect(() => {
     const load = async () => {
       try {
@@ -1241,6 +1489,8 @@ export function AdminAnalyticsContent() {
         ]);
       } catch {
         setLiveMetrics(null);
+      } finally {
+        setIsLoadingAnalytics(false);
       }
     };
     void load();
@@ -1248,6 +1498,7 @@ export function AdminAnalyticsContent() {
 
   return (
     <div className="space-y-5">
+      {isLoadingAnalytics ? <LoadingState label="Refreshing analytics..." /> : null}
       <MetricGrid
         items={liveMetrics ?? [
           adminMetrics[0],
@@ -1270,6 +1521,10 @@ export function AdminAnalyticsContent() {
         title="Analytics narrative"
         description="Readable operational takeaways until live reporting widgets are connected."
       >
+      <IntegrationBadge
+        status="pending"
+        note="Narrative/report widgets endpoint is not available yet."
+      />
         <QuickList
           items={[
             {

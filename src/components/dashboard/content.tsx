@@ -3,10 +3,19 @@ import Link from "next/link";
 import {
   ArrowRight,
   ChevronRight,
+  Loader2,
   MoreHorizontal,
   TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export interface MetricItem {
   label: string;
@@ -51,18 +60,12 @@ function SurfaceAction({
   tone?: "primary" | "secondary";
 }) {
   return (
-    <Link
-      href={action.href}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5",
-        tone === "primary"
-          ? "bg-[#1f8f88] text-white shadow-[0_12px_24px_rgba(31,143,136,0.18)]"
-          : "border border-[color:rgba(17,24,39,0.08)] bg-white text-[var(--color-on-surface)] shadow-[0_8px_16px_rgba(15,23,42,0.05)]",
-      )}
-    >
-      {action.label}
-      <ArrowRight className="h-4 w-4" />
-    </Link>
+    <Button asChild variant={tone === "primary" ? "default" : "outline"}>
+      <Link href={action.href}>
+        {action.label}
+        <ArrowRight className="h-4 w-4" />
+      </Link>
+    </Button>
   );
 }
 
@@ -287,49 +290,56 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <article
-      className={cn(
-        "rounded-[1.7rem] border border-[color:rgba(15,23,42,0.06)] bg-[linear-gradient(180deg,#ffffff_0%,#f8fbfa_100%)] p-5 shadow-[0_16px_34px_rgba(15,23,42,0.05)] md:p-6",
-        className,
-      )}
-    >
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="font-headline text-[1.35rem] font-semibold tracking-tight text-[var(--color-on-surface)]">
-            {title}
-          </h3>
-          {description ? (
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-on-surface-variant)]">
-              {description}
-            </p>
+    <Card className={cn("rounded-[1.7rem] border-[color:rgba(15,23,42,0.06)] md:py-0", className)}>
+      <CardHeader className="mb-1 gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="font-headline text-[1.35rem] tracking-tight">{title}</CardTitle>
+            {description ? (
+              <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-on-surface-variant)]">
+                {description}
+              </CardDescription>
+            ) : null}
+          </div>
+          {actionLabel && actionHref ? (
+            <Button asChild variant="ghost" size="sm" className="w-fit">
+              <Link href={actionHref}>
+                {actionLabel}
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </Button>
           ) : null}
         </div>
-        {actionLabel && actionHref ? (
-          <Link
-            href={actionHref}
-            className="inline-flex items-center gap-2 text-sm font-medium text-[#1f8f88]"
-          >
-            {actionLabel}
-            <ChevronRight className="h-4 w-4" />
-          </Link>
-        ) : null}
-      </div>
-      {children}
-    </article>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }
 
 export function ProgressList({
   items,
 }: {
-  items: Array<{ label: string; value: string; progress: number; detail: string }>;
+  items: Array<{
+    label: string;
+    value: string;
+    progress: number;
+    detail: string;
+    href?: string;
+  }>;
 }) {
   return (
     <div className="space-y-4">
       {items.map((item, index) => (
-        <div
+        <Link
           key={item.label}
-          className="rounded-[1.35rem] border border-[color:rgba(15,23,42,0.06)] bg-white p-4 shadow-[0_10px_20px_rgba(15,23,42,0.04)]"
+          href={item.href ?? "#"}
+          aria-disabled={!item.href}
+          className={cn(
+            "block rounded-[1.35rem] border border-[color:rgba(15,23,42,0.06)] bg-white p-4 shadow-[0_10px_20px_rgba(15,23,42,0.04)] transition-all duration-200",
+            item.href
+              ? "cursor-pointer hover:-translate-y-0.5 hover:border-[#b8dfdb] hover:shadow-[0_16px_28px_rgba(15,23,42,0.08)]"
+              : "cursor-default",
+          )}
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -355,7 +365,7 @@ export function ProgressList({
               style={{ width: `${item.progress}%` }}
             />
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
@@ -369,14 +379,22 @@ export function QuickList({
     detail: string;
     meta: string;
     tone?: "default" | "positive" | "warning";
+    href?: string;
   }>;
 }) {
   return (
     <div className="space-y-3">
       {items.map((item) => (
-        <div
+        <Link
           key={`${item.title}-${item.meta}`}
-          className="flex flex-col gap-4 rounded-[1.35rem] border border-[color:rgba(15,23,42,0.06)] bg-white p-4 shadow-[0_10px_20px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:justify-between"
+          href={item.href ?? "#"}
+          aria-disabled={!item.href}
+          className={cn(
+            "flex flex-col gap-4 rounded-[1.35rem] border border-[color:rgba(15,23,42,0.06)] bg-white p-4 shadow-[0_10px_20px_rgba(15,23,42,0.04)] transition-all duration-200 sm:flex-row sm:items-center sm:justify-between",
+            item.href
+              ? "cursor-pointer hover:-translate-y-0.5 hover:border-[#b8dfdb] hover:shadow-[0_16px_28px_rgba(15,23,42,0.08)]"
+              : "cursor-default",
+          )}
         >
           <div>
             <p className="font-medium text-[var(--color-on-surface)]">
@@ -397,7 +415,7 @@ export function QuickList({
           >
             {item.meta}
           </span>
-        </div>
+        </Link>
       ))}
     </div>
   );
@@ -406,9 +424,11 @@ export function QuickList({
 export function TableCard({
   columns,
   rows,
+  rowLinks,
 }: {
   columns: string[];
   rows: string[][];
+  rowLinks?: Array<string | undefined>;
 }) {
   return (
     <div className="overflow-hidden rounded-[1.4rem] border border-[color:rgba(15,23,42,0.06)] bg-white shadow-[0_12px_24px_rgba(15,23,42,0.04)]">
@@ -427,7 +447,14 @@ export function TableCard({
             {rows.map((row, rowIndex) => (
               <tr
                 key={`${row[0]}-${rowIndex}`}
-                className="border-t border-[color:rgba(15,23,42,0.06)] text-sm text-[var(--color-on-surface)]"
+                className={cn(
+                  "border-t border-[color:rgba(15,23,42,0.06)] text-sm text-[var(--color-on-surface)] transition-colors",
+                  rowLinks?.[rowIndex] ? "cursor-pointer hover:bg-[#f8fbfa]" : "",
+                )}
+                onClick={() => {
+                  const href = rowLinks?.[rowIndex];
+                  if (href) window.location.href = href;
+                }}
               >
                 {row.map((cell, cellIndex) => (
                   <td
@@ -488,7 +515,7 @@ export function SummaryList({
   items,
 }: {
   title: string;
-  items: Array<{ label: string; detail: string; value: string }>;
+  items: Array<{ label: string; detail: string; value: string; href?: string }>;
 }) {
   return (
     <div className="rounded-[1.4rem] border border-[color:rgba(15,23,42,0.06)] bg-white p-4 shadow-[0_10px_20px_rgba(15,23,42,0.04)]">
@@ -506,9 +533,14 @@ export function SummaryList({
       </div>
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div
+          <Link
             key={`${item.label}-${item.value}`}
-            className="flex items-center justify-between gap-3 rounded-[1.1rem] px-1 py-1"
+            href={item.href ?? "#"}
+            aria-disabled={!item.href}
+            className={cn(
+              "flex items-center justify-between gap-3 rounded-[1.1rem] px-1 py-1 transition-colors",
+              item.href ? "cursor-pointer hover:bg-[#f6f9f8]" : "cursor-default",
+            )}
           >
             <div className="flex min-w-0 items-center gap-3">
               <div
@@ -531,9 +563,29 @@ export function SummaryList({
             <p className="text-sm font-semibold text-[var(--color-on-surface)]">
               {item.value}
             </p>
-          </div>
+          </Link>
         ))}
       </div>
+    </div>
+  );
+}
+
+export function LoadingState({
+  label,
+  className,
+}: {
+  label: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full bg-[#f2f8f7] px-3 py-1.5 text-sm font-medium text-[#1f8f88]",
+        className,
+      )}
+    >
+      <Loader2 className="h-4 w-4 animate-spin" />
+      <span>{label}</span>
     </div>
   );
 }

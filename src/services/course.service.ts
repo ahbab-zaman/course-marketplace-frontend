@@ -176,4 +176,30 @@ export const categoryService = {
     );
     return data;
   },
+
+  async getAdminAll(): Promise<ApiResponse<CourseCategory[]>> {
+    const { data } = await apiClient.get<ApiResponse<CourseCategory[]>>(
+      "/categories/admin/all"
+    );
+    return data;
+  },
+
+  async create(payload: Partial<CourseCategory>): Promise<ApiResponse<CourseCategory>> {
+    const { data } = await apiClient.post<ApiResponse<CourseCategory>>(
+      "/categories/admin",
+      payload
+    );
+    return data;
+  },
+
+  async update(
+    id: string,
+    payload: Partial<CourseCategory>
+  ): Promise<ApiResponse<CourseCategory>> {
+    const { data } = await apiClient.patch<ApiResponse<CourseCategory>>(
+      `/categories/admin/${id}`,
+      payload
+    );
+    return data;
+  },
 };

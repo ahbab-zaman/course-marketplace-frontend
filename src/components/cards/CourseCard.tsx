@@ -10,6 +10,11 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course, className }: CourseCardProps) {
+  const categoryLabel =
+    typeof course.category === "string"
+      ? course.category
+      : (course.category?.name ?? "General");
+
   return (
     <Link
       href={`/course/${course.slug}`}
@@ -37,7 +42,7 @@ export function CourseCard({ course, className }: CourseCardProps) {
       {/* Content */}
       <div className="p-4">
         <span className="text-xs font-medium text-primary-500">
-          {course.category}
+          {categoryLabel}
         </span>
         <h3 className="mt-1 line-clamp-2 font-semibold leading-snug group-hover:text-primary-500 transition-colors">
           {course.title}

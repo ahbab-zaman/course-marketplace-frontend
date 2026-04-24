@@ -24,4 +24,11 @@ export const reviewService = {
     );
     return data;
   },
+
+  async remove(reviewId: string): Promise<ApiResponse<CourseReview>> {
+    const { data } = await apiClient.delete<ApiResponse<CourseReview>>(
+      `/reviews/${reviewId}`,
+    );
+    return data;
+  },
 };

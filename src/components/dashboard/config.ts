@@ -1,6 +1,14 @@
 import { ROUTES } from "@/constants/routes";
 
 export type DashboardRole = "admin" | "instructor" | "student";
+export interface DashboardRoleTheme {
+  pageGradient: string;
+  softAccent: string;
+  accentText: string;
+  accentRing: string;
+  avatarGradient: string;
+  avatarText: string;
+}
 
 export interface DashboardNavItem {
   label: string;
@@ -155,18 +163,42 @@ export const dashboardNavigation: Record<DashboardRole, DashboardNavItem[]> = {
 
 export const dashboardRoleMeta: Record<
   DashboardRole,
-  { label: string; badge: string }
+  { label: string; badge: string; theme: DashboardRoleTheme }
 > = {
   admin: {
     label: "Admin control",
     badge: "Platform",
+    theme: {
+      pageGradient: "bg-[linear-gradient(180deg,#f3f4f8_0%,#eceff7_100%)]",
+      softAccent: "bg-[#edf1ff]",
+      accentText: "text-[#5166c9]",
+      accentRing: "ring-[#5166c9]",
+      avatarGradient: "bg-[linear-gradient(180deg,#d9e3ff_0%,#eef2ff_100%)]",
+      avatarText: "text-[#4057a7]",
+    },
   },
   instructor: {
     label: "Instructor studio",
     badge: "Teaching",
+    theme: {
+      pageGradient: "bg-[linear-gradient(180deg,#f2f8f6_0%,#ebf5f1_100%)]",
+      softAccent: "bg-[#e4f7f1]",
+      accentText: "text-[#157a69]",
+      accentRing: "ring-[#157a69]",
+      avatarGradient: "bg-[linear-gradient(180deg,#d5f4ea_0%,#ebfcf6_100%)]",
+      avatarText: "text-[#157a69]",
+    },
   },
   student: {
     label: "Learning space",
     badge: "Student",
+    theme: {
+      pageGradient: "bg-[linear-gradient(180deg,#f4f6fb_0%,#eef2fa_100%)]",
+      softAccent: "bg-[#eaf0ff]",
+      accentText: "text-[#5166c9]",
+      accentRing: "ring-[#5166c9]",
+      avatarGradient: "bg-[linear-gradient(180deg,#d8e2ff_0%,#f3f6ff_100%)]",
+      avatarText: "text-[#4057a7]",
+    },
   },
 };
